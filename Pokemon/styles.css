@@ -1,0 +1,268 @@
+/*
+  styles.css
+  - Camadas visuais do mini‑game: layout do "handheld", campo de batalha, sprites, botões,
+    animações de golpe/dano e modais. Comentado em PT‑BR para estudos e ajustes rápidos.
+  - As imagens dos botões de ataque ocupam 100% da largura do botão e têm ALTURA FIXA de 110px.
+    (ver .action-btn e .attack-icon mais abaixo)
+*/
+
+/* Animações de desvio (MISS) — pequenos movimentos laterais para dar feedback de esquiva */
+.dodge-left { animation: dodge-left 220ms ease-out; }
+@keyframes dodge-left { 0%{transform:translateX(0)} 60%{transform:translateX(-18px)} 100%{transform:translateX(0)} }
+.dodge-right { animation: dodge-right 220ms ease-out; }
+@keyframes dodge-right { 0%{transform:translateX(0)} 60%{transform:translateX(18px)} 100%{transform:translateX(0)} }
+
+/* Flash vermelho curto em botões quando há erro de EP — feedback tátil/visual leve */
+.btn-flash-red { animation: btn-flash-red 420ms ease-out; }
+@keyframes btn-flash-red { 0%{box-shadow:0 0 0 0 rgba(255,0,0,0)} 35%{box-shadow:0 0 0 4px rgba(255,0,0,0.35)} 100%{box-shadow:0 0 0 0 rgba(255,0,0,0)} }
+
+/* Reset simples e base tipográfica/cores do fundo */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html,body { height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(180deg,#0f1724 0%, #071028 100%); color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+button { cursor:pointer; border:0; background:transparent; color:inherit; }
+.top { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; }
+.top h1 { font-size:1.05rem; margin:0; }
+.top-controls { display:flex; gap:10px; align-items:center; }
+.top-controls button { background: rgba(255,255,255,0.06); padding:8px; border-radius:8px; }
+.position { background: rgba(255,255,255,0.03); padding:6px 10px; border-radius:8px; font-size:0.95rem; }
+
+/* Moldura do "handheld" — estética de console portátil, sombras e bordas internas */
+.handheld { 
+  max-width: 980px; 
+  margin: 12px auto; 
+  padding: 18px; 
+  border-radius: 24px; 
+  background: linear-gradient(180deg, #0a0f23, #0b1430);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 6px rgba(255,255,255,0.06);
+  border: 3px solid rgba(160,180,220,0.25);
+}
+
+/* Layout principal (colunas empilhadas e espaçamentos) */
+.game-container { display:flex; flex-direction:column; gap:12px; padding:12px; max-width:920px; margin:0 auto; }
+
+/* Campo de batalha — imagem de fundo, sombras e efeito de profundidade */
+.battle-area { display:block; padding:12px; background: url('campobatalha.png') center/cover no-repeat; border-radius:18px; position:relative; overflow:hidden; min-height:420px; box-shadow: inset 0 0 0 4px rgba(0,0,0,0.5), inset 0 0 36px rgba(0,0,0,0.6); }
+.battle-area::before { content:""; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.12), rgba(0,0,0,0.18)); pointer-events:none; }
+
+/* Barras (HP/EP) ancoradas nos cantos com scale (não altera o DOM original) */
+.bars.hud-left { position:absolute; top:8px; left:12px; z-index:10; transform: scale(0.5); transform-origin: left top; text-align:right; }
+.bars.hud-right { position:absolute; top:8px; right:12px; z-index:10; transform: scale(0.5); transform-origin: right top; text-align:left; }
+.entity { position:absolute; display:flex; gap:8px; align-items:flex-end; width:70%; }
+
+/* Entidades (player e inimigo) posicionadas sobre círculos do fundo */
+#enemy-area { top:12%; left:50%; transform: translateX(-50%); justify-content:flex-end; flex-direction:row-reverse; width:60%; gap:8px; }
+#player-area { bottom:12%; left:50%; transform: translateX(-50%); justify-content:space-between; flex-direction:row; }
+.player-entity .sprite-wrap { top: 16px; }
+.enemy-entity .sprite-wrap { top: -4px; }
+.sprite-wrap { position:relative; width:168px; height:168px; display:flex; align-items:center; justify-content:center; }
+.sprite-wrap::after { content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:88%; height:18px; background: radial-gradient(ellipse at center, rgba(0,0,0,0.35), rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 70%); filter: blur(0.5px); border-radius:50%; }
+.sprite-wrap img { width:100%; height:100%; object-fit:contain; border-radius:12px; transition:transform .12s ease; }
+.damage-pop { position:absolute; top:8px; left:50%; transform:translateX(-50%); pointer-events:none; font-weight:700; text-shadow:0 2px 8px rgba(0,0,0,0.6); }
+
+/* Barras — estética de UI (cores e sombras) */
+.bars { flex:1; }
+.player-entity .bars, .enemy-entity .bars {
+  background: #1a1f36;
+  border: 2px solid #aeb7d9;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25), 0 6px 14px rgba(0,0,0,0.35);
+}
+.player-entity .bars::after, .enemy-entity .bars::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  width: 80px;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0));
+  filter: blur(0.5px);
+}
+.enemy-entity .bars { text-align:left; transform: scale(0.5); transform-origin: left center; }
+.player-entity .bars { text-align:right; transform: scale(0.5); transform-origin: right center; }
+.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.bar { flex:1; height:10px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; box-shadow:inset 0 -2px 0 rgba(0,0,0,0.3); }
+.bar.ep { height:5px; }
+.bar .fill { height:100%; width:100%; transform-origin:left center; transition:width 260ms linear; }
+.bar.hp .fill { background:linear-gradient(90deg,#20ce7a,#0aa164); }
+.bar.ep .fill { background:linear-gradient(90deg,#21a1ff,#0b6cff); }
+.bar-row label { width:36px; font-size:0.85rem; color:#ffb14d; font-weight:700; letter-spacing:.3px; }
+.bar-row:nth-child(2) label { color:#7cc4ff; font-weight:600; }
+.bar-row .value { width:84px; text-align:right; font-size:0.9rem; color:#f1f5f9; text-shadow:0 1px 0 rgba(0,0,0,0.6); }
+
+/* Indicadores VS/turno (compactados) */
+.vs-center { display:none; }
+.vs { font-weight:800; color:#f8fafc; background:rgba(255,255,255,0.04); padding:8px 12px; border-radius:12px; }
+.log-compact { font-size:0.8rem; color:#cbd5e1; background:rgba(255,255,255,0.02); padding:6px 8px; border-radius:8px; }
+
+#enemy-area .sprite-wrap img { transform: scaleX(-1); }
+
+/* Investidas e “quique” de dano — reforçam percepção de impacto dos golpes */
+.lunge-right { animation: lunge-right 220ms ease-out; }
+@keyframes lunge-right {
+  0% { transform: translateX(0) scale(1); }
+  60% { transform: translateX(16px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
+}
+.lunge-left { animation: lunge-left 220ms ease-out; }
+@keyframes lunge-left {
+  0% { transform: translateX(0) scale(1); }
+  60% { transform: translateX(-16px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
+}
+.hit-bounce { animation: hit-bounce 300ms ease-out; }
+@keyframes hit-bounce {
+  0% { transform: translateY(0) }
+  35% { transform: translateY(-12px) }
+  100% { transform: translateY(0) }
+}
+
+/* Versões mais fortes para golpes especiais (impacto maior) */
+.hit-bounce-strong { animation: hit-bounce-strong 420ms ease-out; }
+@keyframes hit-bounce-strong {
+  0% { transform: translateY(0) }
+  30% { transform: translateY(-18px) }
+  60% { transform: translateY(6px) }
+  100% { transform: translateY(0) }
+}
+
+/* Animações distintas por tipo de ataque — diversidade de sensações */
+.anim-basic1-right { animation: basic1-right 260ms ease-out; }
+.anim-basic1-left { animation: basic1-left 260ms ease-out; }
+@keyframes basic1-right { 0%{transform:translateX(0)} 60%{transform:translateX(14px)} 100%{transform:translateX(0)} }
+@keyframes basic1-left  { 0%{transform:translateX(0)} 60%{transform:translateX(-14px)} 100%{transform:translateX(0)} }
+.anim-basic2-right { animation: basic2-right 280ms cubic-bezier(.2,.9,.2,1); }
+.anim-basic2-left  { animation: basic2-left 280ms cubic-bezier(.2,.9,.2,1); }
+@keyframes basic2-right { 0%{transform:translateX(0) scale(1)} 50%{transform:translateX(18px) scale(1.04)} 100%{transform:translateX(0) scale(1)} }
+@keyframes basic2-left  { 0%{transform:translateX(0) scale(1)} 50%{transform:translateX(-18px) scale(1.04)} 100%{transform:translateX(0) scale(1)} }
+.anim-precision-right { animation: precision-right 300ms ease-out; filter: drop-shadow(0 0 6px rgba(255,255,255,0.6)); }
+.anim-precision-left  { animation: precision-left 300ms ease-out; filter: drop-shadow(0 0 6px rgba(255,255,255,0.6)); }
+@keyframes precision-right { 0%{transform:translateX(0) rotate(0)} 55%{transform:translateX(24px) rotate(-4deg)} 100%{transform:translateX(0) rotate(0)} }
+@keyframes precision-left  { 0%{transform:translateX(0) rotate(0)} 55%{transform:translateX(-24px) rotate(4deg)} 100%{transform:translateX(0) rotate(0)} }
+.anim-special-right { animation: special-right 340ms ease-out; filter: drop-shadow(0 0 10px rgba(255,220,120,0.9)); }
+.anim-special-left  { animation: special-left 340ms ease-out; filter: drop-shadow(0 0 10px rgba(255,220,120,0.9)); }
+@keyframes special-right { 0%{transform:translateX(0) scale(1)} 50%{transform:translateX(20px) scale(1.06)} 100%{transform:translateX(0) scale(1)} }
+@keyframes special-left  { 0%{transform:translateX(0) scale(1)} 50%{transform:translateX(-20px) scale(1.06)} 100%{transform:translateX(0) scale(1)} }
+
+/* Efeito de corte/risco colorido — breve rastro visual do golpe */
+.strike {
+  position: absolute;
+  width: 110px;
+  height: 18px;
+  border-radius: 9px;
+  pointer-events: none;
+  transform: translate(-50%,-50%) rotate(-20deg) scale(0.9);
+  mix-blend-mode: screen;
+  opacity: 0.95;
+  filter: blur(0.6px) drop-shadow(0 0 8px rgba(255,255,255,0.35));
+  animation: strike-move 340ms ease-out forwards;
+}
+@keyframes strike-move {
+  0%   { transform: translate(-50%,-50%) rotate(-20deg) scale(0.9); opacity: 1; }
+  60%  { transform: translate(-35%,-65%) rotate(-20deg) scale(1.02); opacity: .95; }
+  100% { transform: translate(-20%,-90%) rotate(-20deg) scale(1.05); opacity: 0; }
+}
+
+/* Controles — grid 2 colunas para botões grandes touch‑friendly */
+.controls-area { display:flex; gap:12px; flex-direction:column; }
+.actions-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.action-btn { display:block; padding:0; border-radius:12px; overflow:hidden; background:none; box-shadow:0 6px 12px rgba(2,6,23,0.5); min-height:110px; height:110px; }
+.action-btn .attack-icon { display:block; width:100%; height:100%; object-fit:cover; border-radius:12px; }
+.action-btn .label { font-weight:700; display:block; }
+.action-btn .sub { display:block; opacity:0.85; font-size:0.82rem; margin-top:4px; color:#cbd5e1; }
+.action-btn.special { border:2px solid rgba(255,255,255,0.06); background:linear-gradient(180deg, rgba(219,39,119,0.06), rgba(124,58,237,0.03)); }
+
+/* Aux buttons */
+.aux-actions { display:flex; gap:10px; margin-top:8px; }
+.aux-actions button { background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px; }
+
+/* Log de combate — caixa rolável de eventos recentes */
+.combat-log { margin-top:8px; background:rgba(0,0,0,0.25); border-radius:10px; padding:8px; height:140px; overflow:auto; }
+.log-entries { display:flex; flex-direction:column; gap:6px; font-size:0.9rem; color:#e6edf3; }
+
+/* Modal generic */
+.modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:60; }
+.modal[aria-hidden="false"] { display:flex; }
+.modal-content { background:#071032; padding:16px; border-radius:12px; min-width:260px; max-width:90%; box-shadow:0 8px 30px rgba(2,6,23,0.7); }
+.modal-content h2 { margin:0 0 8px 0; }
+.modal-content button { margin-top:12px; background:rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; }
+
+/* Explosão (efeito visual leve) — combina três anéis radial‑gradient no JS */
+.explosion {
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  opacity:0.95;
+  transform:translate(-50%,-50%) scale(0.1);
+  animation:explosion-pop 600ms forwards ease-out;
+}
+@keyframes explosion-pop {
+  0% { transform:translate(-50%,-50%) scale(0.2); opacity:1; }
+  60% { transform:translate(-50%,-50%) scale(1.0); opacity:0.9; }
+  100% { transform:translate(-50%,-50%) scale(1.6); opacity:0; }
+}
+
+/* Flash de dano e tremor — reforçam sensação de impacto e dano forte */
+.flash-red { animation:flash-red 400ms ease-out; }
+@keyframes flash-red {
+  0% { box-shadow:0 0 0 0 rgba(255,0,0,0.0); filter: none; }
+  40% { box-shadow:0 0 10px 4px rgba(255,0,0,0.25); filter:saturate(1.2) brightness(1.05); }
+  100% { box-shadow:0 0 0 0 rgba(255,0,0,0); filter:none; }
+}
+.shake { animation:shake 420ms linear; }
+@keyframes shake {
+  0% { transform:translateX(0) }
+  15% { transform:translateX(-10px) }
+  30% { transform:translateX(10px) }
+  50% { transform:translateX(-8px) }
+  70% { transform:translateX(8px) }
+  85% { transform:translateX(-5px) }
+  100% { transform:translateX(0) }
+}
+
+.shake-strong { animation: shake-strong 560ms cubic-bezier(.2,.9,.2,1); }
+@keyframes shake-strong {
+  0% { transform:translateX(0) }
+  12% { transform:translateX(-18px) }
+  24% { transform:translateX(18px) }
+  38% { transform:translateX(-14px) }
+  56% { transform:translateX(14px) }
+  78% { transform:translateX(-8px) }
+  100% { transform:translateX(0) }
+}
+
+/* Responsividade — reduz tamanhos/posições em telas menores */
+@media (max-width:720px) {
+  .battle-area { min-height:360px; }
+  .bars.hud-left { top:6px; left:8px; }
+  .bars.hud-right { top:6px; right:8px; }
+  .entity { width:86%; }
+  .sprite-wrap { width:148px; height:148px; }
+  #enemy-area { top:10%; left:50%; transform:translateX(-50%); }
+  #player-area { bottom:10%; left:50%; transform:translateX(-50%); }
+  .actions-grid { grid-template-columns:repeat(2,1fr); }
+  .bar-row .value { width:60px; font-size:0.78rem; }
+}
+
+/* Aparência do preview do CONFIG nas configurações */
+.config-preview { background: #001226; padding:8px; border-radius:8px; color:#9ae6ff; font-size:0.8rem; overflow:auto; max-height:200px; white-space:pre-wrap; }
+
+/* Brilho sutil por tipo de ataque — efeito barato para dar "punch" nas ações */
+.attack-glow-physical {
+  filter: drop-shadow(0 0 10px rgba(255,140,60,0.65)) saturate(1.1);
+  animation: glow-physical 280ms ease-out;
+}
+@keyframes glow-physical {
+  0% { filter: drop-shadow(0 0 0 rgba(255,140,60,0)) saturate(1); }
+  50% { filter: drop-shadow(0 0 10px rgba(255,140,60,0.8)) saturate(1.2); }
+  100% { filter: drop-shadow(0 0 0 rgba(255,140,60,0)) saturate(1); }
+}
+
+.attack-glow-precision {
+  filter: drop-shadow(0 0 12px rgba(120,200,255,0.75)) saturate(1.1);
+  animation: glow-precision 300ms ease-out;
+}
+@keyframes glow-precision {
+  0% { filter: drop-shadow(0 0 0 rgba(120,200,255,0)) saturate(1); }
+  50% { filter: drop-shadow(0 0 12px rgba(120,200,255,0.9)) saturate(1.25); }
+  100% { filter: drop-shadow(0 0 0 rgba(120,200,255,0)) saturate(1); }
+}

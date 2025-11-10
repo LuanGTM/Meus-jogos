@@ -1,0 +1,181 @@
+<!--
+  index.html
+  - Estrutura de UI do mini‑game. O JavaScript (game.js) injeta toda a lógica.
+  - Mantém áreas: topo (título/posicionamento), campo de batalha (sprites/barras),
+    controles (botões de ação), log e modais (resultado, configurações).
+  - As imagens dos botões ocupam 100% da coluna e têm altura fixa pelo CSS (110px).
+  - IDs e classes são usados por game.js para manipular DOM (não alterar sem ajustar o JS).
+-->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mini-game Batalha (Turn-based) — Tabuleiro</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!--
+README RÁPIDO (comentário)
+- Como testar: basta abrir este arquivo (index.html) no navegador do celular ou desktop. Funciona via file:// ou via servidor local.
+- Substituir imagens:
+    * Coloque uma imagem chamada "player.png" na mesma pasta que estes arquivos. Ela será usada como sprite do jogador. Elemento: <img id="player-sprite" src="player.png">
+    * Coloque uma imagem chamada "hdd.png" na mesma pasta como sprite do HD/inimigo. Elemento: <img id="hdd-sprite" src="hdd.png">
+    * Recomendações: PNG com fundo transparente, ~256x256 a 512x512 (funciona bem). Mantenha os nomes exatamente "player.png" e "hdd.png" ou atualize o atributo src nos elementos correspondentes no HTML.
+- Controles:
+    * Toque / clique nos botões (ataques).
+    * Teclado: teclas 1,2,3,4 -> ataques; Espaço -> Descansar; R -> Reiniciar batalha.
+- Ajustes de balanceamento:
+    * Valores principais estão no topo de game.js no objeto CONFIG. Edite ali para ajustar HP/EP/danos/custos.
+- Nota sobre "data-hdd-next":
+    * Há um atributo no DOM: data-hdd-next="investigate-hdd.png". Troque apenas o nome do arquivo se quiser referenciar o próximo mini-game (o código explica onde esse campo está).
+-->
+
+<div class="handheld">
+<header class="top">
+  <h1>Mini-Game: Batalha por Turnos</h1>
+  <div class="top-controls">
+    <button id="open-settings" aria-label="Abrir configurações">⚙️</button>
+    <div class="position" id="board-position" title="Posição no tabuleiro">Posição atual: <span id="position-value">0</span></div>
+  </div>
+ </header>
+
+<!-- Container principal do "handheld" (margens e layout) -->
+<main class="game-container">
+  <div id="top-bars" style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start;">
+    <div class="player-entity" style="flex:1;">
+      <div>Jogador</div>
+      <div class="bars" style="transform:none; width:100%;">
+        <div class="bar-row">
+          <label>HP</label>
+          <div class="bar hp" id="player-hp-bar"><div class="fill" id="player-hp-fill"></div></div>
+          <div class="value" id="player-hp-text">100 / 100</div>
+        </div>
+        <div class="bar-row">
+          <label>EP</label>
+          <div class="bar ep" id="player-ep-bar"><div class="fill" id="player-ep-fill"></div></div>
+          <div class="value" id="player-ep-text">50 / 50</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="enemy-entity" style="flex:1;">
+      <div>Inimigo (HDD)</div>
+      <div class="bars" style="transform:none; width:100%;">
+        <div class="bar-row">
+          <label>HP</label>
+          <div class="bar hp" id="enemy-hp-bar"><div class="fill" id="enemy-hp-fill"></div></div>
+          <div class="value" id="enemy-hp-text">100 / 100</div>
+        </div>
+        <div class="bar-row">
+          <label>EP</label>
+          <div class="bar ep" id="enemy-ep-bar"><div class="fill" id="enemy-ep-fill"></div></div>
+          <div class="value" id="enemy-ep-text">50 / 50</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Campo de batalha: plano de fundo, sprites e barras (reposicionadas via JS) -->
+  <section class="battle-area" id="battle-area">
+    <!-- Lado do Jogador: sprite e pop de dano -->
+    <div class="entity player-entity" id="player-area">
+      <div class="sprite-wrap">
+        <!-- Substituir player.png localmente se quiser trocar o sprite do player -->
+        <img id="player-sprite" src="player.png" alt="Player sprite">
+        <div class="damage-pop" id="player-damage-pop"></div>
+      </div>
+    </div>
+
+    <div class="vs-center">
+      <div class="vs">VS</div>
+      <div class="log-compact" id="round-indicator">Turno: Jogador</div>
+    </div>
+
+    <!-- Lado do Inimigo (HDD): sprite e pop de dano -->
+    <div class="entity enemy-entity" id="enemy-area" style="top:55%; right:25%; left:auto; width:auto; transform:none; justify-content:flex-start;">
+      <div class="sprite-wrap">
+        <!-- Substituir hdd.png localmente se quiser trocar o sprite do HD -->
+        <img id="hdd-sprite" src="hdd.png" alt="HDD sprite">
+        <div class="damage-pop" id="enemy-damage-pop"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controles (botões de ação + log) -->
+  <section class="controls-area">
+    <!--
+      Grid de Ações (2 colunas):
+      - Botão 1 (data-action="rest"): Recuperar energia (usa imagem ataque1.png por preferência visual).
+      - Botão 2 (data-action="basic1"): Golpe rápido.
+      - Botão 3 (precision) e 4 (special): demais golpes.
+      O JS (bindUI) converte os cliques em ações.
+    -->
+    <div class="actions-grid" id="actions-grid">
+      <!-- Botões grandes para mobile; também respondem a teclas 1-4 -->
+      <button class="action-btn" data-action="rest" id="btn-basic1">
+        <img class="attack-icon" src="ataque1.png" alt="Ataque 1">
+      </button>
+      <button class="action-btn" data-action="basic1" id="btn-basic2">
+        <img class="attack-icon" src="ataque2.png" alt="Ataque 2">
+      </button>
+      <button class="action-btn" data-action="precision" id="btn-precision">
+        <img class="attack-icon" src="ataque3.png" alt="Ataque 3">
+      </button>
+      <button class="action-btn special" data-action="special" id="btn-special">
+        <img class="attack-icon" src="ataque4.png" alt="Ataque Especial">
+      </button>
+    </div>
+
+    <!-- Ações auxiliares (apenas Reiniciar foi mantido) -->
+    <div class="aux-actions">
+      <button id="btn-restart">R • Reiniciar</button>
+    </div>
+
+    <div class="combat-log" id="combat-log" aria-live="polite">
+      <!-- Log rolável -->
+      <div class="log-entries" id="log-entries"></div>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- Modal resultado -->
+<!-- Modal de Resultado: aparece após a fala final; botão OK libera o menu de reinício -->
+<div class="modal" id="result-modal" aria-hidden="true">
+  <div class="modal-content">
+    <h2 id="result-title">Resultado</h2>
+    <p id="result-text"></p>
+    <button id="result-ok">OK</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settings-modal" aria-hidden="true">
+  <div class="modal-content">
+    <h2>Configurações</h2>
+    <div class="settings-row">
+      <label>Animações</label>
+      <input type="checkbox" id="setting-animations" checked>
+    </div>
+    <div class="settings-row">
+      <label>Volume (sons opcionais)</label>
+      <input id="setting-volume" type="range" min="0" max="1" step="0.05" value="0">
+      <small>(sons não inclusos por padrão — deixe 0)</small>
+    </div>
+    <h3>Parâmetros (balanceamento)</h3>
+    <pre id="config-preview" class="config-preview"></pre>
+    <button id="close-settings">Fechar</button>
+  </div>
+</div>
+
+<!-- Data para próximo mini-game (callback) -->
+<!-- Troque apenas o nome do arquivo se quiser apontar para outro HD para investigar.
+     Ex.: data-hdd-next="my-investigate-hdd.png" -->
+<div id="next-hdd" data-hdd-next="investigate-hdd.png" style="display:none;"></div>
+
+<!-- Explosion container: as animações são criadas dinamicamente aqui -->
+<div id="effects-root"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
