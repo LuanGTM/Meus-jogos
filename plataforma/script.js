@@ -126,21 +126,144 @@
 
     // Input
     const keys = { left:false, right:false, jump:false };
+    let touchId = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const TOUCH_THRESHOLD = 10; // pixels mínimos para considerar um arrasto
+    const SWIPE_THRESHOLD = 50; // pixels para considerar um swipe
 
-    // Mobile controls (touch/click)
-    const pressRight = (down) => { if (PF.mode === 'alive') keys.right = down; };
-    const pressJump = () => { if (PF.mode === 'alive') jumpBuffer = JUMP_BUFFER; };
+    // Funções de controle
+    const pressRight = (down) => { 
+      if (PF.mode === 'alive') {
+        keys.right = down; 
+        keys.left = false; // Garante que não haja conflito entre esquerda e direita
+      }
+    };
+    
+    const pressLeft = (down) => { 
+      if (PF.mode === 'alive') {
+        keys.left = down; 
+        keys.right = false; // Garante que não haja conflito entre esquerda e direita
+      }
+    };
+    
+    const pressJump = () => { 
+      if (PF.mode === 'alive') {
+        jumpBuffer = JUMP_BUFFER; 
+        audio.beep(); // Feedback sonoro ao pular
+      }
+    };
+
+    // Bind dos botões de toque
     const bindBtn = (btn, onDown, onUp) => {
       if (!btn) return;
-      btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onDown(); }, {passive:false});
-      btn.addEventListener('touchend', ()=> onUp && onUp());
-      btn.addEventListener('mousedown', (e)=>{ e.preventDefault(); onDown(); });
-      btn.addEventListener('mouseup', ()=> onUp && onUp());
-      btn.addEventListener('mouseleave', ()=> onUp && onUp());
+      // Eventos de toque
+      btn.addEventListener('touchstart', (e)=>{ 
+        e.preventDefault(); 
+        e.stopPropagation();
+        onDown(); 
+      }, {passive:false});
+      
+      btn.addEventListener('touchend', (e)=> { 
+        e.preventDefault();
+        e.stopPropagation();
+        onUp && onUp(); 
+      });
+      
+      // Eventos de mouse (para navegadores desktop com toque)
+      btn.addEventListener('mousedown', (e)=>{ 
+        e.preventDefault(); 
+        onDown(); 
+      });
+      
+      btn.addEventListener('mouseup', (e)=> { 
+        e.preventDefault();
+        onUp && onUp(); 
+      });
+      
+      btn.addEventListener('mouseleave', (e)=> { 
+        e.preventDefault();
+        onUp && onUp(); 
+      });
+      
       btn.addEventListener('contextmenu', (e)=> e.preventDefault());
     };
+    
+    // Configura controles móveis
+    bindBtn(el.btnLeft, ()=>pressLeft(true), ()=>pressLeft(false));
     bindBtn(el.btnRight, ()=>pressRight(true), ()=>pressRight(false));
     bindBtn(el.btnJump, ()=>pressJump(), null);
+    
+    // Controles por gestos na tela
+    function handleTouchStart(e) {
+      if (touchId !== null) return; // Já está rastreando um toque
+      
+      const touch = e.touches[0];
+      touchId = touch.identifier;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      
+      // Verifica se é um toque na área esquerda da tela (movimento)
+      if (touch.clientX < window.innerWidth / 2) {
+        pressLeft(true);
+      } else {
+        // Se for na direita, pode ser pulo ou movimento para direita
+        if (PF.mode === 'alive') {
+          jumpBuffer = JUMP_BUFFER;
+          audio.beep();
+        }
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    function handleTouchMove(e) {
+      if (touchId === null) return;
+      
+      // Encontra o toque que estamos rastreando
+      const touch = Array.from(e.changedTouches).find(t => t.identifier === touchId);
+      if (!touch) return;
+      
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      
+      // Se o movimento for significativo, atualiza a direção
+      if (Math.abs(dx) > TOUCH_THRESHOLD) {
+        if (dx > 0) {
+          pressRight(true);
+          pressLeft(false);
+        } else {
+          pressLeft(true);
+          pressRight(false);
+        }
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    function handleTouchEnd(e) {
+      if (touchId === null) return;
+      
+      // Verifica se o toque que terminou é o que estávamos rastreando
+      const touch = Array.from(e.changedTouches).find(t => t.identifier === touchId);
+      if (!touch) return;
+      
+      // Libera todos os controles
+      pressLeft(false);
+      pressRight(false);
+      touchId = null;
+      
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Adiciona listeners de toque à tela
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
 
     const onKey = (e) => {
       const d = e.type === 'keydown';
