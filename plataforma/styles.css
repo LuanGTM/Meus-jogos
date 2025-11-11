@@ -51,41 +51,78 @@ body {
   padding: 20px;
   position: relative;
 }
-
 /* Cabeçalho HUD */
 .hud {
   display: flex;
+  flex-wrap: wrap; /* Permite que os itens quebrem em telas menores */
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: rgba(10, 25, 47, 0.85);
-  border-radius: 10px;
-  margin-bottom: 20px;
+  padding: 10px 15px; /* Reduzido para telas menores */
+  background: rgba(10, 25, 47, 0.95); /* Aumentada a opacidade para melhor legibilidade */
+  border-radius: 8px;
+  margin-bottom: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(58, 134, 255, 0.2);
+  -webkit-backdrop-filter: blur(5px); /* Prefixo para Safari */
   backdrop-filter: blur(5px);
 }
 
+.hud-left {
+  margin-bottom: 8px; /* Espaçamento quando quebrar em telas pequenas */
+  width: 100%; /* Ocupa toda a largura em telas pequenas */
+}
+
 .hud-left .brand {
-  font-size: 1.5rem;
+  font-size: 1.3rem; /* Reduzido para telas menores */
   font-weight: 800;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-shadow: 0 0 10px rgba(58, 134, 255, 0.3);
   letter-spacing: 1px;
+  display: inline-block; /* Necessário para o gradiente de texto funcionar */
 }
 
 .hud-left .subtitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem; /* Reduzido para telas menores */
   color: #8892b0;
-  margin-top: 4px;
+  margin-top: 2px; /* Reduzido */
 }
 
 .hud-right {
   display: flex;
-  gap: 20px;
-  font-size: 1.1rem;
+  gap: 15px; /* Reduzido o espaçamento */
+  font-size: 1rem; /* Reduzido para telas menores */
+  margin: 0 auto; /* Centraliza em telas pequenas */
+}
+
+/* Media query para telas maiores */
+@media (min-width: 768px) {
+  .hud {
+    flex-wrap: nowrap;
+    padding: 15px 20px;
+  }
+  
+  .hud-left {
+    margin-bottom: 0;
+    width: auto;
+  }
+  
+  .hud-left .brand {
+    font-size: 1.5rem;
+  }
+  
+  .hud-left .subtitle {
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+  
+  .hud-right {
+    font-size: 1.1rem;
+    margin: 0;
+    gap: 20px;
+  }
 }
 
 /* Área principal do jogo */
@@ -222,27 +259,69 @@ body {
 /* Controles mobile */
 .mobile-controls {
   display: none;
-  gap: 15px;
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 5;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+.d-pad {
+  display: flex;
+  gap: 15px;
+  pointer-events: auto;
+}
+
+.btn-jump {
+  pointer-events: auto;
+  margin-left: auto;
+  margin-right: 20px;
 }
 
 .mc-btn {
-  width: 65px;
-  height: 65px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  border: 2px solid rgba(58, 134, 255, 0.5);
-  background: rgba(10, 25, 47, 0.9);
+  border: 2px solid rgba(58, 134, 255, 0.7);
+  background: rgba(10, 25, 47, 0.95);
   color: #64ffda;
-  font-size: 24px;
-  box-shadow: 0 0 15px rgba(58, 134, 255, 0.3);
-  transition: all 0.2s ease;
+  font-size: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(10px);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+  position: relative;
+  overflow: hidden;
+}
+
+.mc-btn:active {
+  transform: scale(0.92);
+  background: rgba(58, 134, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mc-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mc-btn:active::after {
+  opacity: 1;
 }
 
 .mc-btn:active {
@@ -264,27 +343,98 @@ body {
 
 /* Responsividade */
 @media (max-width: 900px) {
+  html, body {
+    touch-action: manipulation;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+  }
+
+  .frame {
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .game {
+    height: calc(100% - 150px);
+    position: relative;
+  }
+
+  #gameCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+
   .mobile-controls {
     display: flex;
+    align-items: center;
+    bottom: 80px;
   }
   
   .hud {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    text-align: left;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .hud-left {
+    flex: 1 1 100%;
   }
   
   .hud-right {
     width: 100%;
-    justify-content: space-around;
+    justify-content: space-between;
+    gap: 10px;
   }
   
   .boot {
-    padding: 20px;
+    padding: 15px;
+    height: 100%;
+    justify-content: flex-start;
+    padding-top: 40px;
   }
   
   .boot .type {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    max-width: 100%;
+    overflow-y: auto;
+    max-height: 60vh;
+  }
+
+  .console {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    border-radius: 0;
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+
+  .mute {
+    bottom: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .btn-group {
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
   }
 }
 
