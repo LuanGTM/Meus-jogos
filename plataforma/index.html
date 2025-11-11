@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Ajude Forence a recuperar pacotes perdidos nas nuvens neste jogo de plataforma desafiador!" />
   <title>Computação Forence — Salvamento nas Nuvens</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" />
@@ -88,11 +91,17 @@ M: Alternar música
       <!-- Controles para dispositivos móveis -->
       <div class="mobile-controls" id="mobileControls">
         <div class="d-pad">
-          <button class="mc-btn" id="btnLeft" aria-label="Mover para esquerda">◀</button>
-          <button class="mc-btn" id="btnRight" aria-label="Mover para direita">▶</button>
+          <button class="mc-btn" id="btnLeft" aria-label="Mover para esquerda" ontouchstart="handleTouchStart(event, 'left')" ontouchend="handleTouchEnd(event, 'left')">◀</button>
+          <button class="mc-btn" id="btnRight" aria-label="Mover para direita" ontouchstart="handleTouchStart(event, 'right')" ontouchend="handleTouchEnd(event, 'right')">▶</button>
         </div>
-        <button class="mc-btn btn-jump" id="btnJump" aria-label="Pular">⤒</button>
+        <button class="mc-btn btn-jump" id="btnJump" aria-label="Pular" ontouchstart="handleTouchStart(event, 'jump')" ontouchend="handleTouchEnd(event, 'jump')">⤒</button>
       </div>
+      
+      <!-- Área de toque para pulo alternativo (lado esquerdo da tela) -->
+      <div id="touchAreaLeft" style="position: fixed; top: 0; left: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
+      
+      <!-- Área de toque para pulo alternativo (lado direito da tela) -->
+      <div id="touchAreaRight" style="position: fixed; top: 0; right: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
     </main>
 
     <footer class="console">
@@ -120,8 +129,72 @@ M: Alternar música
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script src="script.js"></script>
   <script>
-    // Inicializa partículas de fundo
+    // Funções para controles touch
+    function handleTouchStart(e, action) {
+      e.preventDefault();
+      const event = new KeyboardEvent('keydown', {
+        key: action === 'left' ? 'ArrowLeft' : action === 'right' ? 'ArrowRight' : ' ',
+        code: action === 'left' ? 'ArrowLeft' : action === 'right' ? 'ArrowRight' : 'Space',
+        keyCode: action === 'left' ? 37 : action === 'right' ? 39 : 32,
+        which: action === 'left' ? 37 : action === 'right' ? 39 : 32,
+        bubbles: true
+      });
+      window.dispatchEvent(event);
+    }
+
+    function handleTouchEnd(e, action) {
+      e.preventDefault();
+      const event = new KeyboardEvent('keyup', {
+        key: action === 'left' ? 'ArrowLeft' : action === 'right' ? 'ArrowRight' : ' ',
+        code: action === 'left' ? 'ArrowLeft' : action === 'right' ? 'ArrowRight' : 'Space',
+        keyCode: action === 'left' ? 37 : action === 'right' ? 39 : 32,
+        which: action === 'left' ? 37 : action === 'right' ? 39 : 32,
+        bubbles: true
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Detectar dispositivo móvel
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Configurar controles baseado no dispositivo
     document.addEventListener('DOMContentLoaded', () => {
+      if (isMobile) {
+        // Ativar áreas de toque alternativas
+        const touchAreaLeft = document.getElementById('touchAreaLeft');
+        const touchAreaRight = document.getElementById('touchAreaRight');
+        
+        // Mostrar controles móveis apenas em dispositivos móveis
+        document.getElementById('mobileControls').style.display = 'flex';
+        
+        // Configurar área de toque esquerda para movimento
+        touchAreaLeft.style.display = 'block';
+        touchAreaLeft.addEventListener('touchstart', (e) => {
+          handleTouchStart(e, 'left');
+        });
+        touchAreaLeft.addEventListener('touchend', (e) => {
+          handleTouchEnd(e, 'left');
+        });
+        
+        // Configurar área de toque direita para pulo
+        touchAreaRight.style.display = 'block';
+        touchAreaRight.addEventListener('touchstart', (e) => {
+          handleTouchStart(e, 'jump');
+        });
+        touchAreaRight.addEventListener('touchend', (e) => {
+          handleTouchEnd(e, 'jump');
+        });
+        
+        // Prevenir zoom com dois dedos
+        document.addEventListener('touchmove', function(e) {
+          if (e.scale !== 1) { e.preventDefault(); }
+        }, { passive: false });
+        
+        // Prevenir rolagem da página
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'manipulation';
+      }
+      // Inicializa partículas de fundo
       if (typeof particlesJS !== 'undefined') {
         particlesJS('particles-js', {
           particles: {
