@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Ajude Forence a recuperar pacotes perdidos nas nuvens neste jogo de plataforma desafiador!" />
+  <title>Computação Forence — Salvamento nas Nuvens</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👾</text></svg>" />
+</head>
+<body>
+  <!-- Efeito de sobreposição CRT para dar um toque retrô -->
+  <div id="crt-overlay"></div>
+  
+  <!-- Partículas de fundo dinâmicas -->
+  <div id="particles-js"></div>
+  
+  <div class="frame">
+    <header class="hud">
+      <div class="hud-left">
+        <div class="brand glitch" data-text="COMPUTAÇÃO FORENCE">COMPUTAÇÃO FORENCE</div>
+        <div class="subtitle">Salvamento nas Nuvens · Plataformas · Recuperar Pacotes</div>
+      </div>
+      <div class="hud-right">
+        <div class="score">
+          <span class="icon">🏆</span>
+          <span id="score">0</span> pts
+        </div>
+        <div class="level">
+          <span class="icon">📦</span>
+          <span id="collected">0</span>/<span id="goal">10</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="game" class="game">
+      <!-- Tela de inicialização -->
+      <div class="boot" id="boot">
+        <div class="logo">
+          <div class="logo-text">FORENCE</div>
+          <div class="logo-subtext">SALVAMENTO NAS NUVENS</div>
+        </div>
+        
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-btn red"></span>
+            <span class="terminal-btn yellow"></span>
+            <span class="terminal-btn green"></span>
+            <span class="terminal-title">console_forence.exe</span>
+          </div>
+          <pre class="type">
+<span class="highlight">Iniciando console Forence v2.0...</span>
+<span class="highlight">Modo: SALVAMENTO NAS NUVENS</span>
+
+> Carregando recursos... <span class="success">[OK]</span>
+> Verificando controles... <span class="success">[OK]</span>
+> Inicializando física... <span class="success">[OK]</span>
+
+<span class="highlight">OBJETIVO PRINCIPAL:</span>
+Ajude Forence a pular pelas plataformas e recuperar pacotes perdidos nas nuvens.
+
+<span class="highlight">CONTROLES:</span>
+← → ou A/D: Mover
+ESPAÇO ou SETA ↑: Pular
+R: Reiniciar nível
+M: Alternar música
+
+> Pressione <span class="highlight">ESPAÇO</span> ou clique em <span class="highlight">INICIAR</span> para começar.
+          </pre>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn pulse" id="startBtn">
+            <span class="btn-text">INICIAR</span>
+            <span class="btn-icon">▶</span>
+          </button>
+        </div>
+        
+        <div class="credits">
+          <p>Desenvolvido com ❤️ por <span class="highlight">Forence Team</span> | 2025</p>
+        </div>
+      </div>
+      
+      <!-- Canvas do jogo -->
+      <canvas id="gameCanvas" width="800" height="480" style="display:none"></canvas>
+      
+      <!-- Controles para dispositivos móveis -->
+      <div class="mobile-controls" id="mobileControls">
+        <div class="d-pad">
+          <button class="mc-btn" id="btnLeft" aria-label="Mover para esquerda">◀</button>
+          <button class="mc-btn" id="btnRight" aria-label="Mover para direita">▶</button>
+        </div>
+        <button class="mc-btn btn-jump" id="btnJump" aria-label="Pular">⤒</button>
+      </div>
+    </main>
+
+    <footer class="console">
+      <div id="dialog" class="dialog">
+        <span class="cursor">></span> 
+        <span class="typing-text">Sistema inicializado. Aguardando comandos...</span>
+      </div>
+      <div class="tips">
+        <span class="icon">💡</span>
+        <span id="hint">Dica: Colete todos os pacotes para avançar para o próximo nível!</span>
+      </div>
+    </footer>
+
+    <!-- Botão de mudo com efeito de brilho -->
+    <button id="muteToggle" class="mute shine" aria-label="Alternar som" title="Alternar som">
+      <span class="mute-icon">🔊</span>
+      <span class="mute-text">SOM LIGADO</span>
+    </button>
+    
+    <!-- Efeito de confete para vitória -->
+    <div id="confetti" class="confetti"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // Inicializa partículas de fundo
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+          particles: {
+            number: { value: 80, density: { enable: true, value_area: 800 } },
+            color: { value: '#3a86ff' },
+            shape: { type: 'circle' },
+            opacity: {
+              value: 0.5,
+              random: true,
+              anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }
+            },
+            size: {
+              value: 3,
+              random: true,
+              anim: { enable: true, speed: 2, size_min: 0.1, sync: false }
+            },
+            line_linked: {
+              enable: true,
+              distance: 150,
+              color: '#3a86ff',
+              opacity: 0.2,
+              width: 1
+            },
+            move: {
+              enable: true,
+              speed: 1,
+              direction: 'none',
+              random: false,
+              straight: false,
+              out_mode: 'out',
+              bounce: false,
+              attract: { enable: false, rotateX: 600, rotateY: 1200 }
+            }
+          },
+          interactivity: {
+            detect_on: 'canvas',
+            events: {
+              onhover: { enable: true, mode: 'grab' },
+              onclick: { enable: true, mode: 'push' },
+              resize: true
+            },
+            modes: {
+              grab: { distance: 140, line_linked: { opacity: 0.5 } },
+              push: { particles_nb: 4 }
+            }
+          },
+          retina_detect: true
+        });
+      }
+      
+      // Efeito de digitação no console
+      const dialog = document.querySelector('.typing-text');
+      if (dialog) {
+        const text = dialog.textContent;
+        dialog.textContent = '';
+        let i = 0;
+        const speed = 20;
+        
+        function typeWriter() {
+          if (i < text.length) {
+            dialog.textContent += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+          }
+        }
+        
+        setTimeout(typeWriter, 1000);
+      }
+    });
+  </script>
+</body>
+</html>
