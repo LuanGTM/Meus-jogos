@@ -26,13 +26,39 @@
     hard:   { label: 'Difícil', cols: 36, rows: 24, cell: 32, time: 170, color: '#ff3131', wallColor: '#ff8a8a', itemCount: 24, itemValue: 24 }
   };
 
-  // Resize canvas based on chosen grid
+  // Resize canvas based on chosen grid and device
   function resizeFor(diff) {
+    const isMobile = window.innerWidth <= 768;
     const w = diff.cols * diff.cell;
     const h = diff.rows * diff.cell;
-    canvas.width = w; canvas.height = h;
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+    
+    // Set canvas dimensions
+    canvas.width = w;
+    canvas.height = h;
+    
+    if (isMobile) {
+      // On mobile, let CSS handle the scaling
+      canvas.style.width = '100%';
+      canvas.style.height = 'auto';
+      
+      // Adjust cell size for better visibility on mobile
+      const scale = Math.min(
+        (window.innerWidth * 0.95) / w,
+        ((window.innerHeight * 0.6) / h)
+      );
+      
+      const newWidth = Math.floor(w * scale);
+      const newHeight = Math.floor(h * scale);
+      
+      // Apply the scale to the canvas
+      canvas.style.width = newWidth + 'px';
+      canvas.style.height = newHeight + 'px';
+    } else {
+      // On desktop, use fixed size
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+    
     initRain();
   }
 
@@ -332,7 +358,7 @@
       if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') state.inputs.down = 1;
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') state.inputs.left = 1;
       if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') state.inputs.right = 1;
-      if (e.key === 'p') togglePause();
+      if (e.key === 'p' || e.key === ' ') togglePause();
     });
     
     window.addEventListener('keyup', (e) => {
@@ -348,6 +374,11 @@
     const touchLeft = document.getElementById('touchLeft');
     const touchRight = document.getElementById('touchRight');
 
+    // Variáveis para controle de toque
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const minSwipeDistance = 50;
+
     // Função para evitar o comportamento padrão do toque (como rolagem)
     function preventDefault(e) {
       e.preventDefault();
@@ -357,15 +388,20 @@
     function setupTouch(element, direction, value) {
       if (!element) return;
       
-      element.addEventListener('touchstart', (e) => {
+      const handleTouchStart = (e) => {
         state.inputs[direction] = value;
         preventDefault(e);
-      }, { passive: false });
+      };
       
-      element.addEventListener('touchend', (e) => {
+      const handleTouchEnd = (e) => {
         state.inputs[direction] = 0;
         preventDefault(e);
-      }, { passive: false });
+      };
+      
+      // Eventos de toque
+      element.addEventListener('touchstart', handleTouchStart, { passive: false });
+      element.addEventListener('touchend', handleTouchEnd, { passive: false });
+      element.addEventListener('touchcancel', handleTouchEnd, { passive: false });
       
       // Para suporte a mouse em dispositivos com tela sensível ao toque
       element.addEventListener('mousedown', (e) => {
@@ -387,6 +423,77 @@
     setupTouch(touchDown, 'down', 1);
     setupTouch(touchLeft, 'left', 1);
     setupTouch(touchRight, 'right', 1);
+    
+    // Adiciona suporte a gestos de deslizar
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      
+      // Se não estiver em jogo, não faz nada
+      if (!state.running || state.paused) return;
+      
+      // Se o toque for na área dos controles, não faz nada
+      const rect = canvas.getBoundingClientRect();
+      const touchY = touch.clientY - rect.top;
+      const touchX = touch.clientX - rect.left;
+      
+      // Verifica se o toque foi na área do jogo (acima dos controles)
+      if (touchY < rect.height * 0.8) {
+        // Calcula a direção do toque em relação ao centro do canvas
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const deltaX = touchX - centerX;
+        const deltaY = touchY - centerY;
+        
+        // Limpa as direções atuais
+        state.inputs.up = 0;
+        state.inputs.down = 0;
+        state.inputs.left = 0;
+        state.inputs.right = 0;
+        
+        // Define a direção com base no ângulo do toque
+        const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+        
+        if (angle >= -135 && angle < -45) {
+          state.inputs.up = 1;
+        } else if (angle >= 45 && angle < 135) {
+          state.inputs.down = 1;
+        } else if (angle >= -45 && angle < 45) {
+          state.inputs.right = 1;
+        } else {
+          state.inputs.left = 1;
+        }
+      }
+      
+      preventDefault(e);
+    }, { passive: false });
+    
+    canvas.addEventListener('touchmove', (e) => {
+      if (!state.running || state.paused) return;
+      preventDefault(e);
+    }, { passive: false });
+    
+    canvas.addEventListener('touchend', (e) => {
+      state.inputs.up = 0;
+      state.inputs.down = 0;
+      state.inputs.left = 0;
+      state.inputs.right = 0;
+      preventDefault(e);
+    }, { passive: false });
+    
+    // Adiciona evento de duplo toque para pausar o jogo
+    let lastTap = 0;
+    canvas.addEventListener('touchend', (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        // Duplo toque detectado - pausa o jogo
+        togglePause();
+        e.preventDefault();
+      }
+      lastTap = currentTime;
+    }, { passive: false });
   }
 
   // Inicializa os controles
@@ -971,17 +1078,41 @@
       if (Math.random() < 0.01) {
         col.char = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
       }
-    }
   }
+}
 
-  // Inicializa o tema padrão
-  document.body.classList.add('easy');
-  
-  // Inicializa o jogo
-  initRain();
-  
-  // Inicia o loop do jogo se estiver na tela de jogo
-  if (state.running) {
-    loop(0);
+// Função para lidar com mudanças de orientação
+function handleOrientationChange() {
+  if (state.difficulty) {
+    resizeFor(state.infinite ? getInfiniteDiff() : DIFFS[state.difficulty]);
   }
+}
+  
+// Adiciona listeners para mudanças de orientação
+window.addEventListener('resize', handleOrientationChange);
+window.addEventListener('orientationchange', handleOrientationChange);
+
+// Desativa o zoom com gestos de pinça
+document.addEventListener('gesturestart', (e) => {
+  e.preventDefault();
+  document.body.style.zoom = 0.99; // Desativa o zoom
+});
+
+document.addEventListener('gesturechange', (e) => {
+  e.preventDefault();
+  document.body.style.zoom = 0.99; // Mantém o zoom desativado
+});
+
+document.addEventListener('gestureend', (e) => {
+  e.preventDefault();
+  document.body.style.zoom = 1; // Restaura o zoom ao normal
+});
+
+// Evita que a página role quando o usuário tocar na tela
+document.body.addEventListener('touchmove', (e) => {
+  if (state.running) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
 })();
