@@ -31,8 +31,66 @@ body {
                                  repeating-linear-gradient(0deg, #0b1422 0 40px, #0c1626 40px 41px);
   border: 1px solid #123457; box-shadow: 0 0 0 2px #0a1222, 0 0 30px #07111f inset, 0 0 50px #0b2b46; }
 
-.overlay { position: absolute; inset: 0; display: none; place-items: center; background: #020610cc; backdrop-filter: blur(4px); }
+.overlay { position: absolute; inset: 0; display: none; place-items: center; background: #020610cc; backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
 .overlay.visible { display: grid; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Estilos específicos para o menu de pausa */
+#pauseMenu .panel {
+  max-width: 400px;
+  text-align: center;
+}
+
+#pauseMenu h2 {
+  color: var(--accent);
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px var(--accent-2);
+}
+
+#pauseMenu .btn-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#pauseMenu .btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+  transition: all 0.2s ease;
+}
+
+#pauseMenu .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#btnResume {
+  background: linear-gradient(180deg, #1a4a6e, #0d2a3f);
+  border-color: #2b7ab8;
+  color: #e0f3ff;
+}
+
+#btnRestart {
+  background: linear-gradient(180deg, #2a3a4e, #1a2535);
+  border-color: #3a4d6e;
+  color: #e0e8f5;
+}
+
+#btnMainMenu {
+  background: transparent;
+  border-color: #4a3a4e;
+  color: #d8c4e0;
+}
+
+#btnMainMenu:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
 .panel { width: min(92vw, 640px); background: var(--panel); border: 1px solid #1a2c47; border-radius: 12px; padding: 24px; box-shadow: 0 10px 40px #0008; }
 .panel h1, .panel h2 { margin: 0 0 12px; }
 .panel p { margin: 6px 0 16px; color: var(--muted); }
@@ -55,6 +113,102 @@ body {
 body.easy { --accent: #39ff14; --accent-2: #9dff7a; }
 body.medium { --accent: #faff00; --accent-2: #fff27a; }
 body.hard { --accent: #ff3131; --accent-2: #ff8a8a; }
+
+/* Controles de toque para dispositivos móveis */
+.touch-controls {
+  display: none; /* Escondido por padrão, mostrado apenas em telas pequenas */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+.d-pad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.d-middle {
+  display: flex;
+  gap: 5px;
+}
+
+.d-up, .d-down, .d-left, .d-right {
+  width: 60px;
+  height: 60px;
+  background: rgba(15, 27, 46, 0.8);
+  border: 2px solid #1f3351;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--accent);
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.d-up:active, .d-down:active, .d-left:active, .d-right:active {
+  background: rgba(31, 51, 81, 0.8);
+  transform: scale(0.95);
+}
+
+/* Estilos responsivos */
+@media (max-width: 1024px) {
+  .game-wrap {
+    padding: 10px;
+  }
+  
+  .hud {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+  
+  .hud-left, .hud-center, .hud-right {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  
+  .hud-right {
+    justify-content: flex-end;
+  }
+  
+  .btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  #game {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 4/3;
+    max-height: 70vh;
+  }
+  
+  .touch-controls {
+    display: block;
+  }
+  
+  .panel {
+    width: 95%;
+    padding: 16px;
+  }
+  
+  .btn-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .stats {
+    grid-template-columns: 1fr !important;
+  }
+}
 
 /* Retro scanlines */
 #game::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, #0000 0 2px, #0001 2px 3px); mix-blend-mode: soft-light; opacity: .4; }

@@ -98,14 +98,32 @@
   }
 
   function randomEdgeCell(grid) {
-    const rows = grid.length; const cols = grid[0].length;
+    const rows = grid.length; 
+    const cols = grid[0].length;
     const edgeCells = [];
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        if (y === 0 || y === rows-1 || x === 0 || x === cols-1) edgeCells.push(grid[y][x]);
-      }
+    
+    // Adiciona apenas as células das bordas externas
+    for (let x = 0; x < cols; x++) {
+      // Linha superior (y = 0)
+      edgeCells.push({...grid[0][x], edge: 'top', x: x, y: 0});
+      // Linha inferior (y = rows-1)
+      edgeCells.push({...grid[rows-1][x], edge: 'bottom', x: x, y: rows-1});
     }
-    return edgeCells[Math.floor(Math.random() * edgeCells.length)];
+    
+    for (let y = 1; y < rows-1; y++) {
+      // Coluna esquerda (x = 0)
+      edgeCells.push({...grid[y][0], edge: 'left', x: 0, y: y});
+      // Coluna direita (x = cols-1)
+      edgeCells.push({...grid[y][cols-1], edge: 'right', x: cols-1, y: y});
+    }
+    
+    // Remove a célula de início para evitar que seja a mesma da saída
+    const filteredEdges = edgeCells.filter(cell => {
+      return !(cell.x === state.start.x && cell.y === state.start.y);
+    });
+    
+    // Retorna uma célula aleatória das bordas
+    return filteredEdges[Math.floor(Math.random() * filteredEdges.length)];
   }
 
   // BFS shortest path for reference (optional for placing collectibles away from path)
@@ -306,20 +324,73 @@
   }
 
   // Input
-  window.addEventListener('keydown', (e) => {
-    if (e.repeat) return;
-    if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') state.inputs.up = 1;
-    if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') state.inputs.down = 1;
-    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') state.inputs.left = 1;
-    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') state.inputs.right = 1;
-    if (e.key === 'p') togglePause();
-  });
-  window.addEventListener('keyup', (e) => {
-    if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') state.inputs.up = 0;
-    if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') state.inputs.down = 0;
-    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') state.inputs.left = 0;
-    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') state.inputs.right = 0;
-  });
+  function setupInput() {
+    // Teclado
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') state.inputs.up = 1;
+      if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') state.inputs.down = 1;
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') state.inputs.left = 1;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') state.inputs.right = 1;
+      if (e.key === 'p') togglePause();
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') state.inputs.up = 0;
+      if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') state.inputs.down = 0;
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') state.inputs.left = 0;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') state.inputs.right = 0;
+    });
+
+    // Toque - adiciona suporte a dispositivos móveis
+    const touchUp = document.getElementById('touchUp');
+    const touchDown = document.getElementById('touchDown');
+    const touchLeft = document.getElementById('touchLeft');
+    const touchRight = document.getElementById('touchRight');
+
+    // Função para evitar o comportamento padrão do toque (como rolagem)
+    function preventDefault(e) {
+      e.preventDefault();
+    }
+
+    // Configura os eventos de toque
+    function setupTouch(element, direction, value) {
+      if (!element) return;
+      
+      element.addEventListener('touchstart', (e) => {
+        state.inputs[direction] = value;
+        preventDefault(e);
+      }, { passive: false });
+      
+      element.addEventListener('touchend', (e) => {
+        state.inputs[direction] = 0;
+        preventDefault(e);
+      }, { passive: false });
+      
+      // Para suporte a mouse em dispositivos com tela sensível ao toque
+      element.addEventListener('mousedown', (e) => {
+        state.inputs[direction] = value;
+        e.preventDefault();
+      });
+      
+      element.addEventListener('mouseup', () => {
+        state.inputs[direction] = 0;
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        state.inputs[direction] = 0;
+      });
+    }
+
+    // Configura os controles de toque
+    setupTouch(touchUp, 'up', 1);
+    setupTouch(touchDown, 'down', 1);
+    setupTouch(touchLeft, 'left', 1);
+    setupTouch(touchRight, 'right', 1);
+  }
+
+  // Inicializa os controles
+  setupInput();
 
   // Physics: smooth move and wall collisions per cell edges
   function stepPlayer(dt) {
@@ -393,9 +464,46 @@
     state.timeElapsed += dt/1000;
     timerEl.textContent = formatTime(state.timeLeft);
 
-    // Collectibles pickup
+    // Verificação de vitória - Chegou ao portal
     const px = Math.floor(state.player.x);
     const py = Math.floor(state.player.y);
+    
+    // Verifica se o jogador chegou ao portal de saída
+    if ((px === state.goal.x && py === state.goal.y) || 
+        (Math.abs(px - state.goal.x) <= 0.5 && Math.abs(py - state.goal.y) <= 0.5)) {
+      // Adiciona pontos por tempo restante
+      const timeBonus = Math.floor(state.timeLeft * 2);
+      state.phaseScore += timeBonus > 0 ? timeBonus : 0;
+      
+      // Verifica se é campanha e se completou todos os níveis
+      if (state.campaign) {
+        state.score += state.phaseScore;
+        state.campaignIndex++;
+        
+        if (state.campaignIndex >= state.campaignOrder.length) {
+          // Completou todos os níveis da campanha
+          endRun(true, `Você completou todos os níveis!`);
+        } else {
+          // Próximo nível
+          showToast(`Nível ${state.campaignIndex+1} desbloqueado!`);
+          startRun();
+        }
+      } else if (state.infinite) {
+        // Modo infinito - próximo nível
+        state.score += state.phaseScore;
+        state.phaseScore = 0;
+        state.infiniteLevel++;
+        showToast(`Nível ${state.infiniteLevel} alcançado!`);
+        startRun();
+      } else {
+        // Modo normal - vitória
+        state.score += state.phaseScore;
+        endRun(true, `Fuga bem-sucedida!`);
+      }
+      return;
+    }
+
+    // Collectibles pickup
     for (const it of state.collectibles) {
       if (!it.taken && it.x === px && it.y === py) {
         it.taken = true;
@@ -508,8 +616,26 @@
 
   // Rendering
   function draw() {
-    const diff = DIFFS[state.difficulty];
+    if (!state.running) return;
+    
+    const diff = state.infinite ? getInfiniteDiff() : DIFFS[state.difficulty];
     const cell = diff.cell;
+    const cellSize = cell;
+    const halfCell = cellSize / 2;
+    
+    // Ajusta o tamanho do canvas para caber na tela
+    const maxWidth = window.innerWidth * 0.95;
+    const maxHeight = window.innerHeight * 0.7;
+    const scale = Math.min(maxWidth / (diff.cols * cell), maxHeight / (diff.rows * cell), 1);
+    
+    // Aplica a escala ao canvas
+    canvas.style.transform = `scale(${scale})`;
+    canvas.style.transformOrigin = 'top left';
+    
+    // Define o tamanho lógico do canvas
+    canvas.width = diff.cols * cell;
+    canvas.height = diff.rows * cell;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Background rain effect
@@ -518,33 +644,79 @@
     ctx.fillStyle = 'rgba(8,20,37,0.85)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Maze walls
-    ctx.strokeStyle = DIFFS[state.difficulty].wallColor || '#123a5f';
-    ctx.lineWidth = 3;
-    const grid = state.grid;
-    if (grid) {
-      for (let y = 0; y < grid.length; y++) {
-        for (let x = 0; x < grid[0].length; x++) {
-          const c = grid[y][x];
-          const px = x * cell; const py = y * cell;
-          ctx.beginPath();
-          if (c.walls.N) { ctx.moveTo(px, py); ctx.lineTo(px+cell, py); }
-          if (c.walls.S) { ctx.moveTo(px, py+cell); ctx.lineTo(px+cell, py+cell); }
-          if (c.walls.W) { ctx.moveTo(px, py); ctx.lineTo(px, py+cell); }
-          if (c.walls.E) { ctx.moveTo(px+cell, py); ctx.lineTo(px+cell, py+cell); }
-          ctx.stroke();
-        }
+    // Draw maze
+    ctx.strokeStyle = diff.wallColor;
+    ctx.lineWidth = 2;
+    for (const row of state.grid) {
+      for (const cell of row) {
+        const x = cell.x * cellSize;
+        const y = cell.y * cellSize;
+        if (cell.walls.N) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y); ctx.stroke(); }
+        if (cell.walls.S) { ctx.beginPath(); ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
+        if (cell.walls.W) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize); ctx.stroke(); }
+        if (cell.walls.E) { ctx.beginPath(); ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
       }
     }
 
-    // Removed path glow highlight
+    // Draw goal (exit) - desenha o portal de saída na borda
+    const exitSize = cellSize * 0.8;
+    const exitX = state.goal.x * cellSize + (state.goal.edge === 'left' ? -exitSize/2 : 
+                     state.goal.edge === 'right' ? cellSize - exitSize/2 : cellSize/2 - exitSize/2);
+    const exitY = state.goal.y * cellSize + (state.goal.edge === 'top' ? -exitSize/2 : 
+                     state.goal.edge === 'bottom' ? cellSize - exitSize/2 : cellSize/2 - exitSize/2);
+    
+    // Gradiente para o portal
+    const gradient = ctx.createRadialGradient(
+      exitX + exitSize/2, exitY + exitSize/2, 0,
+      exitX + exitSize/2, exitY + exitSize/2, exitSize/2
+    );
+    gradient.addColorStop(0, '#ff0');
+    gradient.addColorStop(0.7, '#f80');
+    gradient.addColorStop(1, 'transparent');
+    
+    // Desenha o portal
+    ctx.save();
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(
+      exitX + exitSize/2,
+      exitY + exitSize/2,
+      exitSize/2,
+      0, Math.PI * 2
+    );
+    ctx.fill();
+    
+    // Efeito de brilho
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(
+      exitX + exitSize/2,
+      exitY + exitSize/2,
+      exitSize * 0.3,
+      0, Math.PI * 2
+    );
+    ctx.fill();
+    ctx.restore();
+    
+    // Desenha a seta indicando a saída
+    ctx.fillStyle = '#ff0';
+    if (state.goal.edge === 'top') {
+      drawArrow(ctx, exitX + exitSize/2, exitY + exitSize, exitX + exitSize/2, exitY + exitSize/2, 5);
+    } else if (state.goal.edge === 'bottom') {
+      drawArrow(ctx, exitX + exitSize/2, exitY, exitX + exitSize/2, exitY + exitSize/2, 5);
+    } else if (state.goal.edge === 'left') {
+      drawArrow(ctx, exitX + exitSize, exitY + exitSize/2, exitX + exitSize/2, exitY + exitSize/2, 5);
+    } else { // right
+      drawArrow(ctx, exitX, exitY + exitSize/2, exitX + exitSize/2, exitY + exitSize/2, 5);
+    }
 
     // Collectibles
     if (state.collectibles) {
       for (const it of state.collectibles) {
         if (it.taken) continue;
-        const cx = it.x * cell + cell/2;
-        const cy = it.y * cell + cell/2;
+        const cx = it.x * cellSize + cellSize/2;
+        const cy = it.y * cellSize + cellSize/2;
         const t = performance.now()/1000;
         const pulse = 0.5 + 0.5*Math.sin(t*4 + (it.x+it.y));
         const r = 6 + 2*pulse;
@@ -615,6 +787,39 @@
     requestAnimationFrame(loop);
   }
 
+  // Função auxiliar para desenhar setas
+  function drawArrow(ctx, fromx, fromy, tox, toy, arrowWidth) {
+    const headLength = 10;
+    const angle = Math.atan2(toy - fromy, tox - fromx);
+    
+    ctx.beginPath();
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = arrowWidth;
+    ctx.stroke();
+    
+    // Cabeça da seta
+    ctx.beginPath();
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(
+      tox - headLength * Math.cos(angle - Math.PI / 7),
+      toy - headLength * Math.sin(angle - Math.PI / 7)
+    );
+    ctx.lineTo(
+      tox - headLength * Math.cos(angle + Math.PI / 7),
+      toy - headLength * Math.sin(angle + Math.PI / 7)
+    );
+    ctx.closePath();
+    ctx.fillStyle = '#ff0';
+    ctx.fill();
+    
+    // Contorno da seta
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = arrowWidth;
+    ctx.stroke();
+  }
+
   // UI wiring
   difficultyButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -671,39 +876,112 @@
     });
   }
 
+  // Elementos do menu de pausa
+  const pauseMenu = document.getElementById('pauseMenu');
+  const btnResume = document.getElementById('btnResume');
+  const btnRestart = document.getElementById('btnRestart');
+  const btnMainMenu = document.getElementById('btnMainMenu');
+
   function togglePause() {
     state.paused = !state.paused;
     if (btnPause) btnPause.textContent = state.paused ? 'Retomar' : 'Pausar';
-  }
-  if (btnPause) {
-    btnPause.addEventListener('click', togglePause);
-  }
-
-  // Matrix-like rain setup
-  function initRain() {
-    const fontSize = 16;
-    state.rain.fontSize = fontSize;
-    const columns = Math.floor(canvas.width / fontSize);
-    state.rain.cols = new Array(columns).fill(0).map(() => ({ y: Math.random()*canvas.height, speed: 2 + Math.random()*3 }));
-  }
-  const RAIN_CHARS = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  function drawRain() {
-    const fontSize = state.rain.fontSize;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(130,255,160,0.85)';
-    ctx.font = `${fontSize}px monospace`;
-    const cols = state.rain.cols;
-    if (!cols || cols.length === 0) return;
-    for (let i = 0; i < cols.length; i++) {
-      const x = i * fontSize + 4;
-      const c = RAIN_CHARS[Math.floor(Math.random()*RAIN_CHARS.length)];
-      ctx.fillText(c, x, cols[i].y);
-      cols[i].y += cols[i].speed * 3;
-      if (cols[i].y > canvas.height + 20) cols[i].y = -20;
+    
+    // Mostra/esconde o menu de pausa
+    if (pauseMenu) {
+      if (state.paused) {
+        pauseMenu.classList.add('visible');
+      } else {
+        pauseMenu.classList.remove('visible');
+      }
     }
   }
 
-  // Default body theme
+  // Event listeners para os botões do menu de pausa
+  if (btnPause) btnPause.addEventListener('click', togglePause);
+  if (btnResume) btnResume.addEventListener('click', togglePause);
+  
+  if (btnRestart) {
+    btnRestart.addEventListener('click', () => {
+      state.paused = false;
+      if (pauseMenu) pauseMenu.classList.remove('visible');
+      startRun();
+    });
+  }
+  
+  if (btnMainMenu) {
+    btnMainMenu.addEventListener('click', () => {
+      state.running = false;
+      state.paused = false;
+      if (startScreen) startScreen.classList.add('visible');
+      if (endScreen) endScreen.classList.remove('visible');
+      if (pauseMenu) pauseMenu.classList.remove('visible');
+    });
+  }
+
+  // Matrix-like rain setup
+  // Função para inicializar o efeito de chuva
+  function initRain() {
+    const fontSize = 20; // Aumentei o tamanho da fonte para ficar mais visível
+    state.rain.fontSize = fontSize;
+    const columns = Math.floor(canvas.width / fontSize);
+    state.rain.cols = new Array(columns).fill(0).map(() => ({
+      y: Math.random() * canvas.height,
+      speed: 0.5 + Math.random() * 0.8, // Reduzi significativamente a velocidade
+      char: RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]
+    }));
+  }
+
+  // Caracteres para o efeito de chuva
+  const RAIN_CHARS = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  // Função para desenhar o efeito de chuva
+  function drawRain() {
+    const fontSize = state.rain.fontSize;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)'; // Fundo mais transparente
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const cols = state.rain.cols;
+    if (!cols || cols.length === 0) return;
+    
+    for (let i = 0; i < cols.length; i++) {
+      const x = i * fontSize + 4;
+      const col = cols[i];
+      
+      // Desenha o caractere principal
+      ctx.fillStyle = 'rgba(130, 255, 160, 0.85)';
+      ctx.font = `${fontSize}px monospace`;
+      ctx.fillText(col.char, x, col.y);
+      
+      // Adiciona um efeito de rastro mais suave
+      ctx.fillStyle = 'rgba(130, 255, 160, 0.4)';
+      ctx.fillText(col.char, x, col.y - fontSize * 0.8);
+      ctx.fillStyle = 'rgba(130, 255, 160, 0.2)';
+      ctx.fillText(col.char, x, col.y - fontSize * 1.6);
+      
+      // Move a coluna para baixo
+      col.y += col.speed;
+      
+      // Reseta a posição e escolhe um novo caractere quando chegar ao final
+      if (col.y > canvas.height + 20) {
+        col.y = -20;
+        col.char = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+      }
+      
+      // Muda o caractere ocasionalmente para um efeito mais dinâmico
+      if (Math.random() < 0.01) {
+        col.char = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+      }
+    }
+  }
+
+  // Inicializa o tema padrão
   document.body.classList.add('easy');
+  
+  // Inicializa o jogo
+  initRain();
+  
+  // Inicia o loop do jogo se estiver na tela de jogo
+  if (state.running) {
+    loop(0);
+  }
 })();
