@@ -38,13 +38,10 @@
     
     if (isMobile) {
       // On mobile, let CSS handle the scaling
-      canvas.style.width = '100%';
-      canvas.style.height = 'auto';
-      
       // Adjust cell size for better visibility on mobile
       const scale = Math.min(
         (window.innerWidth * 0.95) / w,
-        ((window.innerHeight * 0.6) / h)
+        ((window.innerHeight * 0.8) / h)
       );
       
       const newWidth = Math.floor(w * scale);
