@@ -34,13 +34,40 @@
       </div>
       <div class="hud-right">
         <span>Pontos: <strong id="score">0</strong></span>
-        <button id="btnPause" class="btn outline" style="margin-left:10px;">Pausar</button>
+        <button id="btnHowToPlay" class="btn outline" style="margin: 0 10px;">Como Jogar</button>
+        <button id="btnPause" class="btn outline">Pausar</button>
       </div>
     </header>
 
     <main class="game-wrap">
       <canvas id="game" width="960" height="640"></canvas>
       
+      <!-- How to Play Modal -->
+      <div id="howToPlayModal" class="overlay">
+        <div class="panel">
+          <h2>Como Jogar</h2>
+          <div id="desktopInstructions" style="display: none;">
+            <p>Use as <strong>setas do teclado</strong> ou <strong>WASD</strong> para se mover pelo labirinto.</p>
+            <p>Colete todos os itens para avançar para a próxima fase.</p>
+          </div>
+          <div id="mobileInstructions" style="display: none;">
+            <p>Toque na tela para se mover:</p>
+            <div class="mobile-controls-demo">
+              <div class="control-zone up">↑</div>
+              <div class="control-zone-row">
+                <div class="control-zone left">←</div>
+                <div class="control-zone center"></div>
+                <div class="control-zone right">→</div>
+              </div>
+              <div class="control-zone down">↓</div>
+            </div>
+          </div>
+          <div class="btn-grid" style="margin-top: 20px;">
+            <button id="btnCloseHowToPlay" class="btn primary">Entendi</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Menu de Pausa -->
       <div id="pauseMenu" class="overlay">
         <div class="panel">

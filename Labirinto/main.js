@@ -27,81 +27,143 @@
   };
 
   // Touch controls state
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
-  const minSwipeDistance = 30; // Minimum distance in pixels to consider it a swipe
-
-  // Handle touch start
-  function handleTouchStart(e) {
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-  }
-
-  // Handle touch move
-  function handleTouchMove(e) {
-    if (!touchStartX || !touchStartY) return;
-    
-    touchEndX = e.touches[0].clientX;
-    touchEndY = e.touches[0].clientY;
-  }
-
-  // Handle touch end
-  function handleTouchEnd() {
-    if (!touchStartX || !touchStartY || !touchEndX || !touchEndY) return;
-
-    const dx = touchEndX - touchStartX;
-    const dy = touchEndY - touchStartY;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    // Check if it's a swipe (not a tap)
-    if (Math.max(absDx, absDy) < minSwipeDistance) return;
-
-    // Determine the primary direction of the swipe
-    if (absDx > absDy) {
-      // Horizontal swipe
-      if (dx > 0) {
-        // Right swipe
-        player.direction = 'right';
-        player.nextMove = 'right';
-      } else {
-        // Left swipe
-        player.direction = 'left';
-        player.nextMove = 'left';
+  let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  let touchZones = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+  };
+  
+  // Handle screen rotation
+  function handleResize() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    if (isMobile) {
+      // Force landscape mode on mobile
+      if (isPortrait) {
+        alert("Por favor, gire seu dispositivo para o modo paisagem para melhor experiência!");
       }
-    } else {
-      // Vertical swipe
-      if (dy > 0) {
-        // Down swipe
-        player.direction = 'down';
-        player.nextMove = 'down';
-      } else {
-        // Up swipe
-        player.direction = 'up';
-        player.nextMove = 'up';
+      // Recalculate canvas size on rotation
+      if (currentDiff) {
+        resizeFor(currentDiff);
       }
     }
+  }
+  
+  // Add resize and orientation change listeners
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', handleResize);
 
-    // Reset touch coordinates
-    touchStartX = 0;
-    touchStartY = 0;
-    touchEndX = 0;
-    touchEndY = 0;
+  // Handle touch zone activation
+  function activateZone(zone) {
+    touchZones[zone] = true;
+    updatePlayerMovement();
   }
 
-  // Add touch event listeners
+  // Handle touch zone deactivation
+  function deactivateZone(zone) {
+    touchZones[zone] = false;
+    updatePlayerMovement();
+  }
+
+  // Update player movement based on active zones
+  function updatePlayerMovement() {
+    // Reset movement
+    player.nextMove = null;
+    
+    // Check which zones are active and set movement
+    if (touchZones.up && !touchZones.down) {
+      player.direction = 'up';
+      player.nextMove = 'up';
+    } else if (touchZones.down && !touchZones.up) {
+      player.direction = 'down';
+      player.nextMove = 'down';
+    }
+    
+    if (touchZones.left && !touchZones.right) {
+      player.direction = 'left';
+      player.nextMove = 'left';
+    } else if (touchZones.right && !touchZones.left) {
+      player.direction = 'right';
+      player.nextMove = 'right';
+    }
+  }
+  
+  // Handle touch events for the 4-zone control
   function setupTouchControls() {
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+    if (!isMobile) return;
+    
+    // Create touch zones
+    const touchOverlay = document.createElement('div');
+    touchOverlay.className = 'touch-overlay';
+    
+    // Create the 4 touch zones
+    const zones = ['up', 'down', 'left', 'right'];
+    zones.forEach(zone => {
+      const zoneEl = document.createElement('div');
+      zoneEl.className = `touch-zone ${zone}`;
+      
+      // Touch start
+      zoneEl.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        activateZone(zone);
+      }, { passive: false });
+      
+      // Touch end (when finger leaves the zone)
+      zoneEl.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        deactivateZone(zone);
+      }, { passive: false });
+      
+      // Touch cancel (when touch is interrupted)
+      zoneEl.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        deactivateZone(zone);
+      }, { passive: false });
+      
+      touchOverlay.appendChild(zoneEl);
+    });
+    
+    document.body.appendChild(touchOverlay);
+    
+    // Prevent default touch behavior
+    document.addEventListener('touchmove', (e) => {
+      if (isMobile) e.preventDefault();
+    }, { passive: false });
   }
 
-  // Resize canvas based on chosen grid and device
-  function resizeFor(diff) {
-    const isMobile = window.innerWidth <= 1024; // Consider tablets as mobile too
+  // Initialize the game
+  function init() {
+    // Show appropriate instructions
+    if (isMobile) {
+      document.getElementById('mobileInstructions').style.display = 'block';
+      document.getElementById('desktopInstructions').style.display = 'none';
+      setupTouchControls();
+    } else {
+      document.getElementById('mobileInstructions').style.display = 'none';
+      document.getElementById('desktopInstructions').style.display = 'block';
+    }
+    
+    // How to Play button
+    const btnHowToPlay = document.getElementById('btnHowToPlay');
+    const howToPlayModal = document.getElementById('howToPlayModal');
+    const btnCloseHowToPlay = document.getElementById('btnCloseHowToPlay');
+    
+    btnHowToPlay.addEventListener('click', () => {
+      howToPlayModal.classList.add('visible');
+    });
+    
+    btnCloseHowToPlay.addEventListener('click', () => {
+      howToPlayModal.classList.remove('visible');
+    });
+    
+    // Store current difficulty
+    let currentDiff = null;
+  
+    // Start the game
+    function startGame(difficulty) {
+      // Start the game with default difficulty
+      startGame('easy');
     const w = diff.cols * diff.cell;
     const h = diff.rows * diff.cell;
     
@@ -109,29 +171,39 @@
     canvas.width = w;
     canvas.height = h;
     
+    // Calculate available space
+    const headerHeight = document.querySelector('.hud').offsetHeight;
+    const footerHeight = document.querySelector('.foot').offsetHeight;
+    const maxHeight = window.innerHeight - headerHeight - footerHeight - 20; // 20px padding
+    const maxWidth = window.innerWidth - 20; // 10px padding on each side
+    
+    // Calculate scale to fit the screen
+    const scaleX = maxWidth / w;
+    const scaleY = maxHeight / h;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 100%
+    
+    // Apply the scale to the canvas
+    canvas.style.width = (w * scale) + 'px';
+    canvas.style.height = (h * scale) + 'px';
+    
+    // Center the canvas
+    canvas.style.margin = '0 auto';
+    
+    // Handle mobile-specific adjustments
     if (isMobile) {
-      // Calculate the maximum possible scale that fits the screen
-      const scaleX = (window.innerWidth * 0.98) / w;
-      const scaleY = ((window.innerHeight * 0.85) / h);
-      const scale = Math.min(scaleX, scaleY);
+      // Check orientation
+      const isPortrait = window.innerHeight > window.innerWidth;
       
-      // Apply the scale to the canvas
-      canvas.style.width = (w * scale) + 'px';
-      canvas.style.height = (h * scale) + 'px';
+      if (isPortrait) {
+        // Show orientation warning
+        console.log('Please rotate to landscape for best experience');
+      }
       
       // Setup touch controls if not already done
       if (!canvas._touchControlsInitialized) {
         setupTouchControls();
         canvas._touchControlsInitialized = true;
       }
-    } else {
-      // On desktop, use fixed size with max dimensions
-      const maxWidth = 960;
-      const maxHeight = 640;
-      const scale = Math.min(maxWidth / w, maxHeight / h, 1);
-      
-      canvas.style.width = (w * scale) + 'px';
-      canvas.style.height = (h * scale) + 'px';
     }
     
     initRain();

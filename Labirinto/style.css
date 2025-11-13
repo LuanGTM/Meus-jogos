@@ -118,15 +118,99 @@ body {
   right: 0;
   bottom: 0;
   z-index: 5;
-  opacity: 0.5;
-  transition: opacity 0.3s;
+  display: flex;
+  flex-direction: column;
   touch-action: none;
+  pointer-events: auto;
+}
+
+.touch-zone {
+  flex: 1;
+  position: relative;
+  pointer-events: auto;
+}
+
+.touch-zone.up { 
+  height: 40%; 
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.touch-zone.down { 
+  height: 40%; 
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.touch-zone.left { 
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+.touch-zone.right { 
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  border-left: 1px solid rgba(255,255,255,0.1);
+}
+
+/* How to Play Modal */
+#howToPlayModal .panel {
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+}
+
+.mobile-controls-demo {
+  margin: 20px auto;
+  width: 200px;
+  height: 200px;
+  position: relative;
+  background: rgba(15, 23, 38, 0.6);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.control-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin: 5px;
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+.control-zone-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.control-zone.up { height: 60px; margin-bottom: 5px; }
+.control-zone.down { height: 60px; margin-top: 5px; }
+.control-zone.left, 
+.control-zone.center, 
+.control-zone.right { 
+  flex: 1; 
+  height: 60px;
+  margin: 0 5px;
+}
+
+.control-zone.center {
+  background: transparent;
   pointer-events: none;
 }
 
-.touch-overlay:active {
-  opacity: 0.8;
-}
+/* Hide touch controls on desktop */
 
 /* Hide touch controls on desktop */
 @media (min-width: 1025px) {
@@ -143,13 +227,33 @@ body {
   }
   
   .hud .btn {
-    padding: 4px 8px;
+    padding: 6px 10px;
     font-size: 12px;
+    min-width: 80px;
   }
   
   .foot {
     font-size: 11px;
     padding: 6px 12px;
+  }
+  
+  #btnHowToPlay {
+    display: inline-block;
+  }
+  
+  /* Adjust game area for mobile */
+  .game-wrap {
+    padding: 5px;
+  }
+  
+  /* Show mobile instructions on mobile */
+  #mobileInstructions {
+    display: block !important;
+  }
+  
+  /* Hide desktop instructions on mobile */
+  #desktopInstructions {
+    display: block !important;
   }
 }
 
