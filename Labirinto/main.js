@@ -26,9 +26,82 @@
     hard:   { label: 'Difícil', cols: 36, rows: 24, cell: 32, time: 170, color: '#ff3131', wallColor: '#ff8a8a', itemCount: 24, itemValue: 24 }
   };
 
+  // Touch controls state
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  const minSwipeDistance = 30; // Minimum distance in pixels to consider it a swipe
+
+  // Handle touch start
+  function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  }
+
+  // Handle touch move
+  function handleTouchMove(e) {
+    if (!touchStartX || !touchStartY) return;
+    
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+  }
+
+  // Handle touch end
+  function handleTouchEnd() {
+    if (!touchStartX || !touchStartY || !touchEndX || !touchEndY) return;
+
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // Check if it's a swipe (not a tap)
+    if (Math.max(absDx, absDy) < minSwipeDistance) return;
+
+    // Determine the primary direction of the swipe
+    if (absDx > absDy) {
+      // Horizontal swipe
+      if (dx > 0) {
+        // Right swipe
+        player.direction = 'right';
+        player.nextMove = 'right';
+      } else {
+        // Left swipe
+        player.direction = 'left';
+        player.nextMove = 'left';
+      }
+    } else {
+      // Vertical swipe
+      if (dy > 0) {
+        // Down swipe
+        player.direction = 'down';
+        player.nextMove = 'down';
+      } else {
+        // Up swipe
+        player.direction = 'up';
+        player.nextMove = 'up';
+      }
+    }
+
+    // Reset touch coordinates
+    touchStartX = 0;
+    touchStartY = 0;
+    touchEndX = 0;
+    touchEndY = 0;
+  }
+
+  // Add touch event listeners
+  function setupTouchControls() {
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+  }
+
   // Resize canvas based on chosen grid and device
   function resizeFor(diff) {
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 1024; // Consider tablets as mobile too
     const w = diff.cols * diff.cell;
     const h = diff.rows * diff.cell;
     
@@ -37,23 +110,28 @@
     canvas.height = h;
     
     if (isMobile) {
-      // On mobile, let CSS handle the scaling
-      // Adjust cell size for better visibility on mobile
-      const scale = Math.min(
-        (window.innerWidth * 0.95) / w,
-        ((window.innerHeight * 0.8) / h)
-      );
-      
-      const newWidth = Math.floor(w * scale);
-      const newHeight = Math.floor(h * scale);
+      // Calculate the maximum possible scale that fits the screen
+      const scaleX = (window.innerWidth * 0.98) / w;
+      const scaleY = ((window.innerHeight * 0.85) / h);
+      const scale = Math.min(scaleX, scaleY);
       
       // Apply the scale to the canvas
-      canvas.style.width = newWidth + 'px';
-      canvas.style.height = newHeight + 'px';
+      canvas.style.width = (w * scale) + 'px';
+      canvas.style.height = (h * scale) + 'px';
+      
+      // Setup touch controls if not already done
+      if (!canvas._touchControlsInitialized) {
+        setupTouchControls();
+        canvas._touchControlsInitialized = true;
+      }
     } else {
-      // On desktop, use fixed size
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
+      // On desktop, use fixed size with max dimensions
+      const maxWidth = 960;
+      const maxHeight = 640;
+      const scale = Math.min(maxWidth / w, maxHeight / h, 1);
+      
+      canvas.style.width = (w * scale) + 'px';
+      canvas.style.height = (h * scale) + 'px';
     }
     
     initRain();

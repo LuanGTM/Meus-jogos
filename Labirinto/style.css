@@ -10,42 +10,147 @@
   --panel: #0f1726cc;
   --led: #12f7d6;
 }
-html, body { height: 100%; }
+
+html, body { 
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
 body {
   margin: 0;
+  padding: 0;
   font-family: 'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial;
   color: var(--text);
   background: radial-gradient(1200px 800px at 30% -10%, #12233b, transparent),
               radial-gradient(1000px 700px at 100% 0%, #101a2e, transparent),
               linear-gradient(180deg, #070b13, #0a0f1a);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
 }
-#app { display: flex; flex-direction: column; min-height: 100%; }
-.hud, .foot { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
-.hud { position: sticky; top: 0; background: #0a0f1aee; backdrop-filter: blur(6px); border-bottom: 1px solid #0f2338; }
-.foot { opacity: 0.7; font-size: 12px; border-top: 1px solid #0f2338; }
-.brand { color: var(--accent); font-weight: 800; letter-spacing: 1px; }
-.sep { margin: 0 10px; color: #20314a; }
 
+#app { 
+  display: flex; 
+  flex-direction: column; 
+  height: 100vh;
+  max-height: -webkit-fill-available;
+}
+
+.hud, .foot { 
+  padding: 10px 16px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  flex-shrink: 0;
+}
+
+.hud { 
+  position: sticky; 
+  top: 0; 
+  background: #0a0f1aee; 
+  backdrop-filter: blur(6px); 
+  border-bottom: 1px solid #0f2338; 
+  z-index: 10;
+}
+
+.foot { 
+  opacity: 0.7; 
+  font-size: 12px; 
+  border-top: 1px solid #0f2338;
+  padding: 8px 16px;
+}
+
+.brand { 
+  color: var(--accent); 
+  font-weight: 800; 
+  letter-spacing: 1px; 
+  white-space: nowrap;
+}
+
+.sep { 
+  margin: 0 10px; 
+  color: #20314a; 
+}
+
+/* Game container */
 .game-wrap {
   position: relative;
-  display: grid;
-  place-items: center;
-  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  box-sizing: border-box;
+  touch-action: none;
+  overflow: hidden;
 }
 
 #game {
-  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
-  max-width: 960px;
-  max-height: 640px;
+  display: block;
+  margin: 0 auto;
   background: repeating-linear-gradient(90deg, #0b1422 0 40px, #0c1626 40px 41px),
               repeating-linear-gradient(0deg, #0b1422 0 40px, #0c1626 40px 41px);
-  border: 1px solid #123457;
+  border: 1px solid #123457; 
   box-shadow: 0 0 0 2px #0a1222, 0 0 30px #07111f inset, 0 0 50px #0b2b46;
-  display: block;
+  touch-action: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* Touch controls overlay */
+.touch-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  touch-action: none;
+  pointer-events: none;
+}
+
+.touch-overlay:active {
+  opacity: 0.8;
+}
+
+/* Hide touch controls on desktop */
+@media (min-width: 1025px) {
+  .touch-overlay {
+    display: none;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hud {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  .hud .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .foot {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
 }
 
 .overlay { position: absolute; inset: 0; display: none; place-items: center; background: #020610cc; backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
