@@ -157,46 +157,85 @@
     // Bind dos botões de toque
     const bindBtn = (btn, onDown, onUp) => {
       if (!btn) return;
-      // Eventos de toque
-      btn.addEventListener('touchstart', (e)=>{ 
-        e.preventDefault(); 
-        e.stopPropagation();
-        onDown(); 
-      }, {passive:false});
       
-      btn.addEventListener('touchend', (e)=> { 
+      // Função para prevenir comportamentos padrão
+      const preventDefault = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onUp && onUp(); 
-      });
+      };
+
+      // Eventos de toque
+      btn.addEventListener('touchstart', (e) => {
+        preventDefault(e);
+        if (onDown) onDown();
+      }, { passive: false });
+      
+      btn.addEventListener('touchend', (e) => {
+        preventDefault(e);
+        if (onUp) onUp();
+      }, { passive: false });
+      
+      btn.addEventListener('touchcancel', (e) => {
+        preventDefault(e);
+        if (onUp) onUp();
+      }, { passive: false });
       
       // Eventos de mouse (para navegadores desktop com toque)
-      btn.addEventListener('mousedown', (e)=>{ 
-        e.preventDefault(); 
-        onDown(); 
+      btn.addEventListener('mousedown', (e) => {
+        preventDefault(e);
+        if (onDown) onDown();
       });
       
-      btn.addEventListener('mouseup', (e)=> { 
-        e.preventDefault();
-        onUp && onUp(); 
+      btn.addEventListener('mouseup', (e) => {
+        preventDefault(e);
+        if (onUp) onUp();
       });
       
-      btn.addEventListener('mouseleave', (e)=> { 
-        e.preventDefault();
-        onUp && onUp(); 
+      btn.addEventListener('mouseleave', (e) => {
+        preventDefault(e);
+        if (onUp) onUp();
       });
       
-      btn.addEventListener('contextmenu', (e)=> e.preventDefault());
+      // Previne menu de contexto
+      btn.addEventListener('contextmenu', (e) => {
+        preventDefault(e);
+        return false;
+      });
     };
     
     // Configura controles móveis
-    bindBtn(el.btnLeft, ()=>pressLeft(true), ()=>pressLeft(false));
-    bindBtn(el.btnRight, ()=>pressRight(true), ()=>pressRight(false));
-    bindBtn(el.btnJump, ()=>pressJump(), null);
+    if (el.btnLeft && el.btnRight && el.btnJump) {
+      bindBtn(el.btnLeft, () => pressLeft(true), () => pressLeft(false));
+      bindBtn(el.btnRight, () => pressRight(true), () => pressRight(false));
+      bindBtn(el.btnJump, () => pressJump(), null);
+      
+      // Adiciona feedback visual ao tocar nos botões
+      const addButtonFeedback = (btn) => {
+        if (!btn) return;
+        
+        btn.addEventListener('touchstart', () => {
+          btn.style.transform = 'scale(0.95)';
+          btn.style.opacity = '0.9';
+        });
+        
+        const resetButton = () => {
+          btn.style.transform = '';
+          btn.style.opacity = '';
+        };
+        
+        btn.addEventListener('touchend', resetButton);
+        btn.addEventListener('touchcancel', resetButton);
+      };
+      
+      addButtonFeedback(el.btnLeft);
+      addButtonFeedback(el.btnRight);
+      addButtonFeedback(el.btnJump);
+    }
     
     // Controles por gestos na tela
     function handleTouchStart(e) {
-      if (touchId !== null) return; // Já está rastreando um toque
+      // Se já estiver rastreando um toque, ignora novos toques
+      if (touchId !== null) return;
       
       const touch = e.touches[0];
       touchId = touch.identifier;
@@ -216,6 +255,7 @@
       
       e.preventDefault();
       e.stopPropagation();
+      return false;
     }
     
     function handleTouchMove(e) {
@@ -241,6 +281,7 @@
       
       e.preventDefault();
       e.stopPropagation();
+      return false;
     }
     
     function handleTouchEnd(e) {
@@ -257,13 +298,28 @@
       
       e.preventDefault();
       e.stopPropagation();
+      return false;
     }
     
-    // Adiciona listeners de toque à tela
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    // Adiciona listeners de toque à tela com opções otimizadas
+    const passiveOptions = { passive: false };
+    canvas.addEventListener('touchstart', handleTouchStart, passiveOptions);
+    canvas.addEventListener('touchmove', handleTouchMove, passiveOptions);
+    canvas.addEventListener('touchend', handleTouchEnd, passiveOptions);
+    canvas.addEventListener('touchcancel', handleTouchEnd, passiveOptions);
+    
+    // Previne o comportamento padrão de rolagem e zoom
+    document.body.addEventListener('touchmove', (e) => {
+      if (e.target === canvas || e.target.closest('.mobile-controls')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Ajusta o viewport para dispositivos móveis
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+    }
 
     const onKey = (e) => {
       const d = e.type === 'keydown';
