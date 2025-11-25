@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Ajude Forence a recuperar pacotes perdidos nas nuvens neste jogo de plataforma desafiador!" />
+  <meta name="description"
+    content="Ajude Forence a recuperar pacotes perdidos nas nuvens neste jogo de plataforma desafiador!" />
   <title>Computação Forence — Salvamento nas Nuvens</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👾</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👾</text></svg>" />
 </head>
+
 <body>
   <!-- Efeito de sobreposição CRT para dar um toque retrô -->
   <div id="crt-overlay"></div>
-  
+
   <!-- Partículas de fundo dinâmicas -->
   <div id="particles-js"></div>
-  
+
   <div class="frame">
     <header class="hud">
       <div class="hud-left">
@@ -44,7 +50,7 @@
           <div class="logo-text">FORENCE</div>
           <div class="logo-subtext">SALVAMENTO NAS NUVENS</div>
         </div>
-        
+
         <div class="terminal">
           <div class="terminal-header">
             <span class="terminal-btn red"></span>
@@ -72,41 +78,45 @@ M: Alternar música
 > Pressione <span class="highlight">ESPAÇO</span> ou clique em <span class="highlight">INICIAR</span> para começar.
           </pre>
         </div>
-        
+
         <div class="btn-group">
           <button class="btn pulse" id="startBtn">
             <span class="btn-text">INICIAR</span>
             <span class="btn-icon">▶</span>
           </button>
         </div>
-        
+
         <div class="credits">
           <p>Desenvolvido com ❤️ por <span class="highlight">Forence Team</span> | 2025</p>
         </div>
       </div>
-      
+
       <!-- Canvas do jogo -->
       <canvas id="gameCanvas" width="800" height="480" style="display:none"></canvas>
-      
+
+      <!-- Substituir a seção de controles móveis no final do body por: -->
       <!-- Controles para dispositivos móveis -->
-      <div class="mobile-controls" id="mobileControls">
+      <div id="mobileControls" class="mobile-controls">
         <div class="d-pad">
-          <button class="mc-btn" id="btnLeft" aria-label="Mover para esquerda" ontouchstart="handleTouchStart(event, 'left')" ontouchend="handleTouchEnd(event, 'left')">◀</button>
-          <button class="mc-btn" id="btnRight" aria-label="Mover para direita" ontouchstart="handleTouchStart(event, 'right')" ontouchend="handleTouchEnd(event, 'right')">▶</button>
+          <button id="btnLeft" class="mc-btn" aria-label="Mover para esquerda">←</button>
+          <button id="btnRight" class="mc-btn" aria-label="Mover para direita">→</button>
         </div>
-        <button class="mc-btn btn-jump" id="btnJump" aria-label="Pular" ontouchstart="handleTouchStart(event, 'jump')" ontouchend="handleTouchEnd(event, 'jump')">⤒</button>
+        <button id="btnJump" class="mc-btn btn-jump" aria-label="Pular">↑</button>
       </div>
-      
+
+      <!-- Remover a duplicação dos controles móveis que está no final do arquivo -->
       <!-- Área de toque para pulo alternativo (lado esquerdo da tela) -->
-      <div id="touchAreaLeft" style="position: fixed; top: 0; left: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
-      
+      <div id="touchAreaLeft"
+        style="position: fixed; top: 0; left: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
+
       <!-- Área de toque para pulo alternativo (lado direito da tela) -->
-      <div id="touchAreaRight" style="position: fixed; top: 0; right: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
+      <div id="touchAreaRight"
+        style="position: fixed; top: 0; right: 0; width: 50%; height: 100%; z-index: 999; display: none;"></div>
     </main>
 
     <footer class="console">
       <div id="dialog" class="dialog">
-        <span class="cursor">></span> 
+        <span class="cursor">></span>
         <span class="typing-text">Sistema inicializado. Aguardando comandos...</span>
       </div>
       <div class="tips">
@@ -120,13 +130,22 @@ M: Alternar música
       <span class="mute-icon">🔊</span>
       <span class="mute-text">SOM LIGADO</span>
     </button>
-    
+
     <!-- Efeito de confete para vitória -->
     <div id="confetti" class="confetti"></div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <!-- Controles para dispositivos móveis -->
+  <div id="mobileControls" class="mobile-controls">
+    <div class="d-pad">
+      <button id="btnLeft" class="control-btn" aria-label="Mover para esquerda">←</button>
+      <button id="btnRight" class="control-btn" aria-label="Mover para direita">→</button>
+    </div>
+    <button id="btnJump" class="control-btn jump-btn" aria-label="Pular">↑</button>
+  </div>
+
   <script src="script.js"></script>
   <script>
     // Funções para controles touch
@@ -156,17 +175,17 @@ M: Alternar música
 
     // Detectar dispositivo móvel
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+
     // Configurar controles baseado no dispositivo
     document.addEventListener('DOMContentLoaded', () => {
       if (isMobile) {
         // Ativar áreas de toque alternativas
         const touchAreaLeft = document.getElementById('touchAreaLeft');
         const touchAreaRight = document.getElementById('touchAreaRight');
-        
+
         // Mostrar controles móveis apenas em dispositivos móveis
         document.getElementById('mobileControls').style.display = 'flex';
-        
+
         // Configurar área de toque esquerda para movimento
         touchAreaLeft.style.display = 'block';
         touchAreaLeft.addEventListener('touchstart', (e) => {
@@ -175,7 +194,7 @@ M: Alternar música
         touchAreaLeft.addEventListener('touchend', (e) => {
           handleTouchEnd(e, 'left');
         });
-        
+
         // Configurar área de toque direita para pulo
         touchAreaRight.style.display = 'block';
         touchAreaRight.addEventListener('touchstart', (e) => {
@@ -184,12 +203,12 @@ M: Alternar música
         touchAreaRight.addEventListener('touchend', (e) => {
           handleTouchEnd(e, 'jump');
         });
-        
+
         // Prevenir zoom com dois dedos
-        document.addEventListener('touchmove', function(e) {
+        document.addEventListener('touchmove', function (e) {
           if (e.scale !== 1) { e.preventDefault(); }
         }, { passive: false });
-        
+
         // Prevenir rolagem da página
         document.body.style.overflow = 'hidden';
         document.body.style.touchAction = 'manipulation';
@@ -244,7 +263,7 @@ M: Alternar música
           retina_detect: true
         });
       }
-      
+
       // Efeito de digitação no console
       const dialog = document.querySelector('.typing-text');
       if (dialog) {
@@ -252,7 +271,7 @@ M: Alternar música
         dialog.textContent = '';
         let i = 0;
         const speed = 20;
-        
+
         function typeWriter() {
           if (i < text.length) {
             dialog.textContent += text.charAt(i);
@@ -260,10 +279,11 @@ M: Alternar música
             setTimeout(typeWriter, speed);
           }
         }
-        
+
         setTimeout(typeWriter, 1000);
       }
     });
   </script>
 </body>
+
 </html>
