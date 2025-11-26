@@ -147,23 +147,25 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
 
 /* Entidades (player e inimigo) posicionadas sobre círculos do fundo */
 #enemy-area { 
-  top: 8%; 
+  top: 6%; /* Ajuste fino na posição vertical */
   left: 50%; 
   transform: translateX(-50%); 
-  justify-content: flex-end; 
-  flex-direction: row-reverse; 
-  width: 90%; 
-  gap: 8px; 
+  justify-content: center; /* Centraliza melhor */
+  flex-direction: column; /* Empilha elementos verticalmente */
+  align-items: center; /* Centraliza horizontalmente */
+  width: 100%; /* Ocupa toda a largura */
+  gap: 4px; 
   z-index: 10;
 }
 
 #player-area { 
-  bottom: 8%; 
+  bottom: 6%; /* Ajuste fino na posição vertical */
   left: 50%; 
   transform: translateX(-50%); 
-  justify-content: space-between; 
-  flex-direction: row; 
-  width: 90%;
+  justify-content: center; /* Centraliza melhor */
+  flex-direction: column; /* Empilha elementos verticalmente */
+  align-items: center; /* Centraliza horizontalmente */
+  width: 100%; /* Ocupa toda a largura */
   z-index: 10;
 }
 
@@ -177,35 +179,58 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
   display: flex; 
   align-items: center; 
   justify-content: center; 
+  margin: 15px 0; /* Aumenta o espaçamento vertical entre os sprites */
 }
 
 /* Ajustes para telas maiores que 480px */
 @media (min-width: 480px) {
   #enemy-area { 
-    top: 12%; 
-    width: 80%; 
+    top: 10%; 
+    width: 90%; 
+    flex-direction: row; /* Volta ao layout em linha */
+    justify-content: space-around; /* Espaçamento uniforme */
   }
   
   #player-area { 
-    bottom: 12%; 
-    width: 80%;
+    bottom: 10%; 
+    width: 90%;
+    flex-direction: row; /* Volta ao layout em linha */
+    justify-content: space-around; /* Espaçamento uniforme */
   }
   
   .sprite-wrap { 
     width: 140px; 
     height: 140px; 
+    margin: 0 10px; /* Espaçamento horizontal em telas maiores */
   }
 }
 
 /* Ajustes para telas maiores que 768px */
 @media (min-width: 768px) {
   .sprite-wrap { 
-    width: 168px; 
-    height: 168px; 
+    width: 160px; 
+    height: 160px; 
+    margin: 0 20px; /* Mais espaço entre os sprites em telas grandes */
   }
   
-  .player-entity .sprite-wrap { top: 16px; }
-  .enemy-entity .sprite-wrap { top: -4px; }
+  .player-entity .sprite-wrap { 
+    top: 16px;
+    transform: translateY(10px); /* Desce um pouco o sprite do jogador */
+  }
+  
+  .enemy-entity .sprite-wrap { 
+    top: -4px;
+    transform: translateY(-10px); /* Sobe um pouco o sprite do inimigo */
+  }
+  
+  /* Ajuste adicional para telas muito grandes */
+  #enemy-area {
+    top: 12%;
+  }
+  
+  #player-area {
+    bottom: 12%;
+  }
 }
 .sprite-wrap::after { content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:88%; height:18px; background: radial-gradient(ellipse at center, rgba(0,0,0,0.35), rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 70%); filter: blur(0.5px); border-radius:50%; }
 .sprite-wrap img { width:100%; height:100%; object-fit:contain; border-radius:12px; transition:transform .12s ease; }
@@ -411,7 +436,8 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
   height: 100px; 
   max-height: 25vh;
   overflow: auto; 
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* Fonte menor para celular */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Ajustes para telas maiores que 480px */
@@ -421,10 +447,25 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
     padding: 8px; 
     height: 120px; 
     max-height: 140px;
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Fonte ligeiramente maior em tablets/desktop */
   }
 }
-.log-entries { display:flex; flex-direction:column; gap:6px; font-size:0.9rem; color:#e6edf3; }
+
+.log-entries { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  font-size: 0.8rem; 
+  color: #e6edf3; 
+  line-height: 1.3; /* Melhora a legibilidade */
+}
+
+/* Ajuste para mensagens do log em telas pequenas */
+@media (max-width: 480px) {
+  .log-entries {
+    font-size: 0.7rem;
+  }
+}
 
 /* Modal generic */
 .modal { 
