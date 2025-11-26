@@ -18,220 +18,43 @@
 
 /* Reset simples e base tipográfica/cores do fundo */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html,body { height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(180deg,#0f1724 0%, #071028 100%); color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow-x: hidden; }
+html,body { height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(180deg,#0f1724 0%, #071028 100%); color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
 button { cursor:pointer; border:0; background:transparent; color:inherit; }
-.top { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; }
-.top h1 { font-size:0.9rem; margin:0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
-.top-controls { display:flex; gap:6px; align-items:center; }
-.top-controls button { background: rgba(255,255,255,0.06); padding:6px; border-radius:6px; font-size: 0.9em; }
-.position { background: rgba(255,255,255,0.03); padding:4px 8px; border-radius:6px; font-size:0.8rem; white-space: nowrap; }
+.top { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; }
+.top h1 { font-size:1.05rem; margin:0; }
+.top-controls { display:flex; gap:10px; align-items:center; }
+.top-controls button { background: rgba(255,255,255,0.06); padding:8px; border-radius:8px; }
+.position { background: rgba(255,255,255,0.03); padding:6px 10px; border-radius:8px; font-size:0.95rem; }
 
 /* Moldura do "handheld" — estética de console portátil, sombras e bordas internas */
 .handheld { 
-  width: 100%;
-  min-height: 100vh;
-  margin: 0; 
-  padding: 8px; 
-  border-radius: 0; 
+  max-width: 980px; 
+  margin: 12px auto; 
+  padding: 18px; 
+  border-radius: 24px; 
   background: linear-gradient(180deg, #0a0f23, #0b1430);
-  box-shadow: none;
-  border: none;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .handheld {
-    max-width: 100%;
-    min-height: auto;
-    margin: 12px auto;
-    padding: 12px;
-    border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 6px rgba(255,255,255,0.06);
-    border: 3px solid rgba(160,180,220,0.25);
-  }
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 6px rgba(255,255,255,0.06);
+  border: 3px solid rgba(160,180,220,0.25);
 }
 
 /* Layout principal (colunas empilhadas e espaçamentos) */
-.game-container { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 8px; 
-  padding: 8px; 
-  width: 100%; 
-  margin: 0 auto; 
-  flex: 1;
-  max-width: 100%;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .game-container {
-    gap: 12px;
-    padding: 12px;
-    max-width: 920px;
-  }
-}
+.game-container { display:flex; flex-direction:column; gap:12px; padding:12px; max-width:920px; margin:0 auto; }
 
 /* Campo de batalha — imagem de fundo, sombras e efeito de profundidade */
-.battle-area { 
-  display: block; 
-  padding: 8px; 
-  background: url('campobatalha.png') center/cover no-repeat; 
-  border-radius: 12px; 
-  position: relative; 
-  overflow: hidden; 
-  min-height: 280px; 
-  height: 40vh;
-  max-height: 400px;
-  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.5), inset 0 0 24px rgba(0,0,0,0.6); 
-  margin-bottom: 4px;
-}
-
-.battle-area::before { 
-  content: ""; 
-  position: absolute; 
-  inset: 0; 
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.12), rgba(0,0,0,0.18)); 
-  pointer-events: none; 
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .battle-area {
-    padding: 12px;
-    border-radius: 18px;
-    min-height: 320px;
-    height: 50vh;
-    max-height: 420px;
-    box-shadow: inset 0 0 0 4px rgba(0,0,0,0.5), inset 0 0 36px rgba(0,0,0,0.6);
-    margin-bottom: 0;
-  }
-}
+.battle-area { display:block; padding:12px; background: url('campobatalha.png') center/cover no-repeat; border-radius:18px; position:relative; overflow:hidden; min-height:420px; box-shadow: inset 0 0 0 4px rgba(0,0,0,0.5), inset 0 0 36px rgba(0,0,0,0.6); }
+.battle-area::before { content:""; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.12), rgba(0,0,0,0.18)); pointer-events:none; }
 
 /* Barras (HP/EP) ancoradas nos cantos com scale (não altera o DOM original) */
-.bars.hud-left { 
-  position: absolute; 
-  top: 4px; 
-  left: 8px; 
-  z-index: 10; 
-  transform: scale(0.5); 
-  transform-origin: left top; 
-  text-align: right; 
-}
-
-.bars.hud-right { 
-  position: absolute; 
-  top: 4px; 
-  right: 8px; 
-  z-index: 10; 
-  transform: scale(0.5); 
-  transform-origin: right top; 
-  text-align: left; 
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .bars.hud-left { 
-    top: 8px; 
-    left: 12px; 
-  }
-  
-  .bars.hud-right { 
-    top: 8px; 
-    right: 12px; 
-  }
-}
+.bars.hud-left { position:absolute; top:8px; left:12px; z-index:10; transform: scale(0.5); transform-origin: left top; text-align:right; }
+.bars.hud-right { position:absolute; top:8px; right:12px; z-index:10; transform: scale(0.5); transform-origin: right top; text-align:left; }
 .entity { position:absolute; display:flex; gap:8px; align-items:flex-end; width:70%; }
 
 /* Entidades (player e inimigo) posicionadas sobre círculos do fundo */
-#enemy-area { 
-  top: 6%; /* Ajuste fino na posição vertical */
-  left: 50%; 
-  transform: translateX(-50%); 
-  justify-content: center; /* Centraliza melhor */
-  flex-direction: column; /* Empilha elementos verticalmente */
-  align-items: center; /* Centraliza horizontalmente */
-  width: 100%; /* Ocupa toda a largura */
-  gap: 4px; 
-  z-index: 10;
-}
-
-#player-area { 
-  bottom: 6%; /* Ajuste fino na posição vertical */
-  left: 50%; 
-  transform: translateX(-50%); 
-  justify-content: center; /* Centraliza melhor */
-  flex-direction: column; /* Empilha elementos verticalmente */
-  align-items: center; /* Centraliza horizontalmente */
-  width: 100%; /* Ocupa toda a largura */
-  z-index: 10;
-}
-
-.player-entity .sprite-wrap { top: 12px; }
-.enemy-entity .sprite-wrap { top: 0; }
-
-.sprite-wrap { 
-  position: relative; 
-  width: 120px; 
-  height: 120px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  margin: 15px 0; /* Aumenta o espaçamento vertical entre os sprites */
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  #enemy-area { 
-    top: 10%; 
-    width: 90%; 
-    flex-direction: row; /* Volta ao layout em linha */
-    justify-content: space-around; /* Espaçamento uniforme */
-  }
-  
-  #player-area { 
-    bottom: 10%; 
-    width: 90%;
-    flex-direction: row; /* Volta ao layout em linha */
-    justify-content: space-around; /* Espaçamento uniforme */
-  }
-  
-  .sprite-wrap { 
-    width: 140px; 
-    height: 140px; 
-    margin: 0 10px; /* Espaçamento horizontal em telas maiores */
-  }
-}
-
-/* Ajustes para telas maiores que 768px */
-@media (min-width: 768px) {
-  .sprite-wrap { 
-    width: 160px; 
-    height: 160px; 
-    margin: 0 20px; /* Mais espaço entre os sprites em telas grandes */
-  }
-  
-  .player-entity .sprite-wrap { 
-    top: 16px;
-    transform: translateY(10px); /* Desce um pouco o sprite do jogador */
-  }
-  
-  .enemy-entity .sprite-wrap { 
-    top: -4px;
-    transform: translateY(-10px); /* Sobe um pouco o sprite do inimigo */
-  }
-  
-  /* Ajuste adicional para telas muito grandes */
-  #enemy-area {
-    top: 12%;
-  }
-  
-  #player-area {
-    bottom: 12%;
-  }
-}
+#enemy-area { top:12%; left:50%; transform: translateX(-50%); justify-content:flex-end; flex-direction:row-reverse; width:60%; gap:8px; }
+#player-area { bottom:12%; left:50%; transform: translateX(-50%); justify-content:space-between; flex-direction:row; }
+.player-entity .sprite-wrap { top: 16px; }
+.enemy-entity .sprite-wrap { top: -4px; }
+.sprite-wrap { position:relative; width:168px; height:168px; display:flex; align-items:center; justify-content:center; }
 .sprite-wrap::after { content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:88%; height:18px; background: radial-gradient(ellipse at center, rgba(0,0,0,0.35), rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 70%); filter: blur(0.5px); border-radius:50%; }
 .sprite-wrap img { width:100%; height:100%; object-fit:contain; border-radius:12px; transition:transform .12s ease; }
 .damage-pop { position:absolute; top:8px; left:50%; transform:translateX(-50%); pointer-events:none; font-weight:700; text-shadow:0 2px 8px rgba(0,0,0,0.6); }
@@ -340,172 +163,26 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
 }
 
 /* Controles — grid 2 colunas para botões grandes touch‑friendly */
-.controls-area { 
-  display: flex; 
-  gap: 8px; 
-  flex-direction: column;
-  margin-top: auto;
-  padding-bottom: env(safe-area-inset-bottom, 8px);
-}
-
-.actions-grid { 
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 6px; 
-}
-
-.action-btn { 
-  display: block; 
-  padding: 0; 
-  border-radius: 10px; 
-  overflow: hidden; 
-  background: none; 
-  box-shadow: 0 4px 8px rgba(2,6,23,0.4); 
-  min-height: 90px; 
-  height: 90px; 
-  width: 100%;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .controls-area { 
-    gap: 12px; 
-  }
-  
-  .actions-grid { 
-    gap: 8px; 
-  }
-  
-  .action-btn { 
-    min-height: 100px; 
-    height: 100px; 
-    border-radius: 12px;
-  }
-}
-
-/* Ajustes para telas maiores que 768px */
-@media (min-width: 768px) {
-  .action-btn { 
-    min-height: 110px; 
-    height: 110px; 
-  }
-}
+.controls-area { display:flex; gap:12px; flex-direction:column; }
+.actions-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.action-btn { display:block; padding:0; border-radius:12px; overflow:hidden; background:none; box-shadow:0 6px 12px rgba(2,6,23,0.5); min-height:110px; height:110px; }
 .action-btn .attack-icon { display:block; width:100%; height:100%; object-fit:cover; border-radius:12px; }
 .action-btn .label { font-weight:700; display:block; }
 .action-btn .sub { display:block; opacity:0.85; font-size:0.82rem; margin-top:4px; color:#cbd5e1; }
 .action-btn.special { border:2px solid rgba(255,255,255,0.06); background:linear-gradient(180deg, rgba(219,39,119,0.06), rgba(124,58,237,0.03)); }
 
 /* Aux buttons */
-.aux-actions { 
-  display: flex; 
-  gap: 8px; 
-  margin-top: 6px; 
-  justify-content: center;
-}
-
-.aux-actions button { 
-  background: rgba(255,255,255,0.04); 
-  padding: 8px 12px; 
-  border-radius: 8px; 
-  font-size: 0.85rem;
-  flex: 1;
-  text-align: center;
-  white-space: nowrap;
-  max-width: 200px;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .aux-actions { 
-    gap: 10px; 
-    margin-top: 8px; 
-  }
-  
-  .aux-actions button { 
-    padding: 8px 16px; 
-    font-size: 0.9rem;
-  }
-}
+.aux-actions { display:flex; gap:10px; margin-top:8px; }
+.aux-actions button { background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px; }
 
 /* Log de combate — caixa rolável de eventos recentes */
-.combat-log { 
-  margin-top: 6px; 
-  background: rgba(0,0,0,0.25); 
-  border-radius: 8px; 
-  padding: 6px; 
-  height: 100px; 
-  max-height: 25vh;
-  overflow: auto; 
-  font-size: 0.75rem; /* Fonte menor para celular */
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .combat-log { 
-    margin-top: 8px; 
-    padding: 8px; 
-    height: 120px; 
-    max-height: 140px;
-    font-size: 0.85rem; /* Fonte ligeiramente maior em tablets/desktop */
-  }
-}
-
-.log-entries { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 4px; 
-  font-size: 0.8rem; 
-  color: #e6edf3; 
-  line-height: 1.3; /* Melhora a legibilidade */
-}
-
-/* Ajuste para mensagens do log em telas pequenas */
-@media (max-width: 480px) {
-  .log-entries {
-    font-size: 0.7rem;
-  }
-}
+.combat-log { margin-top:8px; background:rgba(0,0,0,0.25); border-radius:10px; padding:8px; height:140px; overflow:auto; }
+.log-entries { display:flex; flex-direction:column; gap:6px; font-size:0.9rem; color:#e6edf3; }
 
 /* Modal generic */
-.modal { 
-  position: fixed; 
-  inset: 0; 
-  display: none; 
-  align-items: center; 
-  justify-content: center; 
-  background: rgba(2,6,23,0.8); 
-  z-index: 100; 
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.modal[aria-hidden="false"] { 
-  display: flex; 
-}
-
-.modal-content { 
-  background: #071032; 
-  padding: 16px; 
-  border-radius: 12px; 
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 8px 30px rgba(2,6,23,0.9); 
-  max-height: 90vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Ajustes para telas maiores que 480px */
-@media (min-width: 480px) {
-  .modal {
-    padding: 20px;
-  }
-  
-  .modal-content {
-    padding: 20px;
-  }
-}
+.modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:60; }
+.modal[aria-hidden="false"] { display:flex; }
+.modal-content { background:#071032; padding:16px; border-radius:12px; min-width:260px; max-width:90%; box-shadow:0 8px 30px rgba(2,6,23,0.7); }
 .modal-content h2 { margin:0 0 8px 0; }
 .modal-content button { margin-top:12px; background:rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; }
 
@@ -564,6 +241,192 @@ button { cursor:pointer; border:0; background:transparent; color:inherit; }
   #player-area { bottom:10%; left:50%; transform:translateX(-50%); }
   .actions-grid { grid-template-columns:repeat(2,1fr); }
   .bar-row .value { width:60px; font-size:0.78rem; }
+}
+
+/* Mobile-first styles */
+@media (max-width: 767px) {
+  /* Full viewport layout */
+  html, body { height: 100%; overflow: hidden; }
+  .handheld { 
+    margin: 0; 
+    padding: 8px; 
+    height: 100vh; 
+    max-width: 100%; 
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Header adjustments */
+  .top { 
+    padding: 6px 0; 
+    flex-shrink: 0;
+  }
+  .top h1 { 
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+  }
+  .position {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+  
+  /* Battle area */
+  .battle-area { 
+    min-height: 0;
+    flex: 1;
+    margin: 4px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+  }
+  
+  /* Character sprites */
+  .sprite-wrap { 
+    width: 100px; 
+    height: 100px; 
+    margin: 0 auto;
+  }
+  
+  /* Character positioning */
+  .entity {
+    position: relative;
+    width: 100%;
+    transform: none !important;
+  }
+  #enemy-area { 
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  #player-area { 
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  
+  /* VS indicator */
+  .vs-center { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    margin: 4px 0;
+    position: relative;
+    z-index: 5;
+  }
+  .vs { 
+    font-size: 1rem; 
+    margin: 4px 0; 
+    padding: 4px 12px;
+  }
+  .log-compact { 
+    font-size: 0.75rem; 
+    text-align: center;
+    padding: 2px 8px;
+  }
+  
+  /* Status bars */
+  .bars.hud-left, 
+  .bars.hud-right { 
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    transform: none !important;
+    width: 100%;
+    margin: 4px 0;
+  }
+  .player-entity .bars, 
+  .enemy-entity .bars { 
+    padding: 6px 8px; 
+    width: 100%;
+    max-width: 100%;
+  }
+  .bar-row { 
+    margin-bottom: 4px;
+    align-items: center;
+  }
+  .bar-row label { 
+    width: 28px; 
+    font-size: 0.7rem; 
+  }
+  .bar-row .value { 
+    width: 60px; 
+    font-size: 0.7rem; 
+    text-align: right;
+  }
+  
+  /* Controls */
+  .controls-area { 
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .actions-grid { 
+    gap: 6px;
+  }
+  .action-btn { 
+    min-height: 80px; 
+    height: 80px; 
+    border-radius: 8px;
+  }
+  .action-btn .label {
+    font-size: 0.8rem;
+  }
+  .action-btn .sub {
+    font-size: 0.7rem;
+    margin-top: 2px;
+  }
+  
+  /* Combat log */
+  .combat-log { 
+    height: 15vh; 
+    margin-top: 4px;
+    padding: 6px;
+    border-radius: 6px;
+  }
+  .log-entries { 
+    font-size: 0.75rem; 
+    gap: 4px;
+  }
+  
+  /* Modal adjustments */
+  .modal-content { 
+    max-width: 90%; 
+    padding: 12px; 
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Hide elements not needed on mobile */
+  .top-controls button:not(#open-settings) {
+    display: none;
+  }
+}
+
+/* Adjust for very small screens */
+@media (max-width: 360px) {
+  .sprite-wrap {
+    width: 80px;
+    height: 80px;
+  }
+  .action-btn {
+    min-height: 70px;
+    height: 70px;
+  }
+  .action-btn .label {
+    font-size: 0.7rem;
+  }
+  .action-btn .sub {
+    font-size: 0.6rem;
+  }
 }
 
 /* Aparência do preview do CONFIG nas configurações */
